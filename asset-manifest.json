@@ -1,29 +1,29 @@
 {
   "files": {
-    "main.css": "/static/css/main.7f476d17.chunk.css",
-    "main.js": "/static/js/main.88b2a52b.chunk.js",
-    "main.js.map": "/static/js/main.88b2a52b.chunk.js.map",
-    "runtime-main.js": "/static/js/runtime-main.f8997ab4.js",
-    "runtime-main.js.map": "/static/js/runtime-main.f8997ab4.js.map",
-    "static/js/2.dcbff2b0.chunk.js": "/static/js/2.dcbff2b0.chunk.js",
-    "static/js/2.dcbff2b0.chunk.js.map": "/static/js/2.dcbff2b0.chunk.js.map",
-    "0633958498cf101939e0.module.wasm": "/0633958498cf101939e0.module.wasm",
-    "index.html": "/index.html",
-    "precache-manifest.a7c2ac8c9b721ca252dcfc5099a97063.js": "/precache-manifest.a7c2ac8c9b721ca252dcfc5099a97063.js",
-    "service-worker.js": "/service-worker.js",
-    "static/css/main.7f476d17.chunk.css.map": "/static/css/main.7f476d17.chunk.css.map",
-    "static/js/1.864d4cda.chunk.worker.js": "/static/js/1.864d4cda.chunk.worker.js",
-    "static/js/1.864d4cda.chunk.worker.js.map": "/static/js/1.864d4cda.chunk.worker.js.map",
-    "static/js/2.dcbff2b0.chunk.js.LICENSE.txt": "/static/js/2.dcbff2b0.chunk.js.LICENSE.txt",
-    "static/js/main.88b2a52b.chunk.js.LICENSE.txt": "/static/js/main.88b2a52b.chunk.js.LICENSE.txt",
-    "zkp.worker.34e6b02c606dc2166cb1.worker.js": "/zkp.worker.34e6b02c606dc2166cb1.worker.js",
-    "zkp.worker.34e6b02c606dc2166cb1.worker.js.LICENSE.txt": "/zkp.worker.34e6b02c606dc2166cb1.worker.js.LICENSE.txt",
-    "zkp.worker.34e6b02c606dc2166cb1.worker.js.map": "/zkp.worker.34e6b02c606dc2166cb1.worker.js.map"
+    "main.css": "/zk-battleship/static/css/main.ef40a5e1.chunk.css",
+    "main.js": "/zk-battleship/static/js/main.714065b6.chunk.js",
+    "main.js.map": "/zk-battleship/static/js/main.714065b6.chunk.js.map",
+    "runtime-main.js": "/zk-battleship/static/js/runtime-main.047c42f8.js",
+    "runtime-main.js.map": "/zk-battleship/static/js/runtime-main.047c42f8.js.map",
+    "static/js/2.2add10a9.chunk.js": "/zk-battleship/static/js/2.2add10a9.chunk.js",
+    "static/js/2.2add10a9.chunk.js.map": "/zk-battleship/static/js/2.2add10a9.chunk.js.map",
+    "0633958498cf101939e0.module.wasm": "/zk-battleship/0633958498cf101939e0.module.wasm",
+    "index.html": "/zk-battleship/index.html",
+    "precache-manifest.5355ddea593d97694127b8a40578954d.js": "/zk-battleship/precache-manifest.5355ddea593d97694127b8a40578954d.js",
+    "service-worker.js": "/zk-battleship/service-worker.js",
+    "static/css/main.ef40a5e1.chunk.css.map": "/zk-battleship/static/css/main.ef40a5e1.chunk.css.map",
+    "static/js/1.864d4cda.chunk.worker.js": "/zk-battleship/static/js/1.864d4cda.chunk.worker.js",
+    "static/js/1.864d4cda.chunk.worker.js.map": "/zk-battleship/static/js/1.864d4cda.chunk.worker.js.map",
+    "static/js/2.2add10a9.chunk.js.LICENSE.txt": "/zk-battleship/static/js/2.2add10a9.chunk.js.LICENSE.txt",
+    "static/js/main.714065b6.chunk.js.LICENSE.txt": "/zk-battleship/static/js/main.714065b6.chunk.js.LICENSE.txt",
+    "zkp.worker.bbba687a8e43257cc2ee.worker.js": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js",
+    "zkp.worker.bbba687a8e43257cc2ee.worker.js.LICENSE.txt": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js.LICENSE.txt",
+    "zkp.worker.bbba687a8e43257cc2ee.worker.js.map": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js.map"
   },
   "entrypoints": [
-    "static/js/runtime-main.f8997ab4.js",
-    "static/js/2.dcbff2b0.chunk.js",
-    "static/css/main.7f476d17.chunk.css",
-    "static/js/main.88b2a52b.chunk.js"
+    "static/js/runtime-main.047c42f8.js",
+    "static/js/2.2add10a9.chunk.js",
+    "static/css/main.ef40a5e1.chunk.css",
+    "static/js/main.714065b6.chunk.js"
   ]
 }
