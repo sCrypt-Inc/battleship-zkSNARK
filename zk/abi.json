@@ -1,0 +1,105 @@
+{
+  "inputs": [
+    {
+      "name": "carrierX",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "carrierY",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "carrierO",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "battleshipX",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "battleshipY",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "battleshipO",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "cruiserX",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "cruiserY",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "cruiserO",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "submarineX",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "submarineY",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "submarineO",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "destroyerX",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "destroyerY",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "destroyerO",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "shipHash",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "targetX",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "targetY",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "hit",
+      "public": true,
+      "type": "bool"
+    }
+  ],
+  "output": {
+    "type": "tuple",
+    "components": {
+      "elements": []
+    }
+  }
+}
