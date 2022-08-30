@@ -1,21 +1,21 @@
 {
   "files": {
-    "main.css": "/zk-battleship/static/css/main.ef40a5e1.chunk.css",
-    "main.js": "/zk-battleship/static/js/main.8f8b214f.chunk.js",
-    "main.js.map": "/zk-battleship/static/js/main.8f8b214f.chunk.js.map",
+    "main.css": "/zk-battleship/static/css/main.693dd3df.chunk.css",
+    "main.js": "/zk-battleship/static/js/main.7c199fb7.chunk.js",
+    "main.js.map": "/zk-battleship/static/js/main.7c199fb7.chunk.js.map",
     "runtime-main.js": "/zk-battleship/static/js/runtime-main.047c42f8.js",
     "runtime-main.js.map": "/zk-battleship/static/js/runtime-main.047c42f8.js.map",
     "static/js/2.2add10a9.chunk.js": "/zk-battleship/static/js/2.2add10a9.chunk.js",
     "static/js/2.2add10a9.chunk.js.map": "/zk-battleship/static/js/2.2add10a9.chunk.js.map",
     "0633958498cf101939e0.module.wasm": "/zk-battleship/0633958498cf101939e0.module.wasm",
     "index.html": "/zk-battleship/index.html",
-    "precache-manifest.397b94554dba78cb3c7cfd0b1e0950cb.js": "/zk-battleship/precache-manifest.397b94554dba78cb3c7cfd0b1e0950cb.js",
+    "precache-manifest.5e5a06f22f5c11635c7583441b45e00a.js": "/zk-battleship/precache-manifest.5e5a06f22f5c11635c7583441b45e00a.js",
     "service-worker.js": "/zk-battleship/service-worker.js",
-    "static/css/main.ef40a5e1.chunk.css.map": "/zk-battleship/static/css/main.ef40a5e1.chunk.css.map",
+    "static/css/main.693dd3df.chunk.css.map": "/zk-battleship/static/css/main.693dd3df.chunk.css.map",
     "static/js/1.864d4cda.chunk.worker.js": "/zk-battleship/static/js/1.864d4cda.chunk.worker.js",
     "static/js/1.864d4cda.chunk.worker.js.map": "/zk-battleship/static/js/1.864d4cda.chunk.worker.js.map",
     "static/js/2.2add10a9.chunk.js.LICENSE.txt": "/zk-battleship/static/js/2.2add10a9.chunk.js.LICENSE.txt",
-    "static/js/main.8f8b214f.chunk.js.LICENSE.txt": "/zk-battleship/static/js/main.8f8b214f.chunk.js.LICENSE.txt",
+    "static/js/main.7c199fb7.chunk.js.LICENSE.txt": "/zk-battleship/static/js/main.7c199fb7.chunk.js.LICENSE.txt",
     "zkp.worker.bbba687a8e43257cc2ee.worker.js": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js",
     "zkp.worker.bbba687a8e43257cc2ee.worker.js.LICENSE.txt": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js.LICENSE.txt",
     "zkp.worker.bbba687a8e43257cc2ee.worker.js.map": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js.map"
@@ -23,7 +23,7 @@
   "entrypoints": [
     "static/js/runtime-main.047c42f8.js",
     "static/js/2.2add10a9.chunk.js",
-    "static/css/main.ef40a5e1.chunk.css",
-    "static/js/main.8f8b214f.chunk.js"
+    "static/css/main.693dd3df.chunk.css",
+    "static/js/main.7c199fb7.chunk.js"
   ]
 }
