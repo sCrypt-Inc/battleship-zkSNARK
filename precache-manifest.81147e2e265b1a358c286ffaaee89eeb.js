@@ -4,11 +4,11 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/zk-battleship/0633958498cf101939e0.module.wasm"
   },
   {
-    "revision": "10e7d3ae47d64d74548c685097bbd281",
+    "revision": "ee4c6c28055be0b61a3e71a2716c04a5",
     "url": "/zk-battleship/index.html"
   },
   {
-    "revision": "c4ea5e1f18a0d47f9400",
+    "revision": "1a0aa19e9e63daba9788",
     "url": "/zk-battleship/static/css/main.693dd3df.chunk.css"
   },
   {
@@ -24,12 +24,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/zk-battleship/static/js/2.2add10a9.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "c4ea5e1f18a0d47f9400",
-    "url": "/zk-battleship/static/js/main.a7fd745f.chunk.js"
+    "revision": "1a0aa19e9e63daba9788",
+    "url": "/zk-battleship/static/js/main.48eaf1d8.chunk.js"
   },
   {
     "revision": "4e0e34f265fae8f33b01b27ae29d9d6f",
-    "url": "/zk-battleship/static/js/main.a7fd745f.chunk.js.LICENSE.txt"
+    "url": "/zk-battleship/static/js/main.48eaf1d8.chunk.js.LICENSE.txt"
   },
   {
     "revision": "5c88d3ef7c423e76d3c4",
