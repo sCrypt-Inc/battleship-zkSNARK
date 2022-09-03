@@ -1,21 +1,21 @@
 {
   "files": {
     "main.css": "/zk-battleship/static/css/main.693dd3df.chunk.css",
-    "main.js": "/zk-battleship/static/js/main.48eaf1d8.chunk.js",
-    "main.js.map": "/zk-battleship/static/js/main.48eaf1d8.chunk.js.map",
+    "main.js": "/zk-battleship/static/js/main.10a2d9a5.chunk.js",
+    "main.js.map": "/zk-battleship/static/js/main.10a2d9a5.chunk.js.map",
     "runtime-main.js": "/zk-battleship/static/js/runtime-main.047c42f8.js",
     "runtime-main.js.map": "/zk-battleship/static/js/runtime-main.047c42f8.js.map",
     "static/js/2.2add10a9.chunk.js": "/zk-battleship/static/js/2.2add10a9.chunk.js",
     "static/js/2.2add10a9.chunk.js.map": "/zk-battleship/static/js/2.2add10a9.chunk.js.map",
     "0633958498cf101939e0.module.wasm": "/zk-battleship/0633958498cf101939e0.module.wasm",
     "index.html": "/zk-battleship/index.html",
-    "precache-manifest.81147e2e265b1a358c286ffaaee89eeb.js": "/zk-battleship/precache-manifest.81147e2e265b1a358c286ffaaee89eeb.js",
+    "precache-manifest.48ee2fc1ca639adb6fdfdc582e9dafcd.js": "/zk-battleship/precache-manifest.48ee2fc1ca639adb6fdfdc582e9dafcd.js",
     "service-worker.js": "/zk-battleship/service-worker.js",
     "static/css/main.693dd3df.chunk.css.map": "/zk-battleship/static/css/main.693dd3df.chunk.css.map",
     "static/js/1.864d4cda.chunk.worker.js": "/zk-battleship/static/js/1.864d4cda.chunk.worker.js",
     "static/js/1.864d4cda.chunk.worker.js.map": "/zk-battleship/static/js/1.864d4cda.chunk.worker.js.map",
     "static/js/2.2add10a9.chunk.js.LICENSE.txt": "/zk-battleship/static/js/2.2add10a9.chunk.js.LICENSE.txt",
-    "static/js/main.48eaf1d8.chunk.js.LICENSE.txt": "/zk-battleship/static/js/main.48eaf1d8.chunk.js.LICENSE.txt",
+    "static/js/main.10a2d9a5.chunk.js.LICENSE.txt": "/zk-battleship/static/js/main.10a2d9a5.chunk.js.LICENSE.txt",
     "zkp.worker.bbba687a8e43257cc2ee.worker.js": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js",
     "zkp.worker.bbba687a8e43257cc2ee.worker.js.LICENSE.txt": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js.LICENSE.txt",
     "zkp.worker.bbba687a8e43257cc2ee.worker.js.map": "/zk-battleship/zkp.worker.bbba687a8e43257cc2ee.worker.js.map"
@@ -24,6 +24,6 @@
     "static/js/runtime-main.047c42f8.js",
     "static/js/2.2add10a9.chunk.js",
     "static/css/main.693dd3df.chunk.css",
-    "static/js/main.48eaf1d8.chunk.js"
+    "static/js/main.10a2d9a5.chunk.js"
   ]
 }
