@@ -15,6 +15,7 @@
     "@types/mocha": "^7.0.1",
     "axios": "^0.27.2",
     "chai": "^4.2.0",
+    "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "cross-env": "^7.0.3",
     "mocha": "^7.0.1",
@@ -24,7 +25,8 @@
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
     "scryptlib": "^1.0.4",
-    "zokrates-js": "^1.1.1"
+    "zokrates-js": "^1.1.1",
+    "snarkjs": "https://github.com/sCrypt-Inc/snarkjs.git"
   },
   "scripts": {
     "predeploy": "npm run build",
@@ -34,7 +36,7 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "single-test": "cross-env NODE_OPTIONS=--max-old-space-size=8192 mocha --reporter spec --timeout 1200000000",
-    "zkcompile": "scripts/zkcompile"
+    "zkcompile": "sh scripts/setup-circom.sh"
   },
   "eslintConfig": {
     "extends": "react-app"

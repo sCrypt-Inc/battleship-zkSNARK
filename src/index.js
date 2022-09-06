@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import { WelcomeScreen } from './WelcomeScreen';
 import { Game } from './Game/Game.js';
@@ -13,6 +13,19 @@ export const App = () => {
   const [appState, setAppState] = useState('welcome'); // play or welcome
 
   const [desc, setDesc] = useState(null); // play or welcome
+
+  useEffect(() => {
+    const script = document.createElement('script');
+  
+    script.src = "/zk-battleship/zk/snarkjs.min.js";
+    script.async = true;
+  
+    document.body.appendChild(script);
+  
+    return () => {
+      document.body.removeChild(script);
+    }
+  }, []);
 
   const startPlay = async () => {
 

@@ -1,4 +1,5 @@
 
+
 type FQ = int;
 
 struct FQ2 {
@@ -53,8 +54,8 @@ library BN256 {
 
     // Key int size:
     static const int S = 33;    // 32 bytes plus sign byte
-    static const bytes mask = reverseBytes(num2bin(1, 33), 33);
-    static const bytes zero = reverseBytes(num2bin(0, 33), 33);
+    static const bytes mask = b'000000000000000000000000000000000000000000000000000000000000000001';
+    static const bytes zero = b'000000000000000000000000000000000000000000000000000000000000000000';
 
     // Generator of G1:
     static const CurvePoint G1 = {1, 2, 1, 1};
@@ -62,12 +63,12 @@ library BN256 {
     // Generator of G2:
     static const TwistPoint G2 = {
         {
-            0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2,
-            0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed
+            11559732032986387107991004021392285783925812861821192530917403151452391805634,
+            10857046999023057135944570762232829481370756359578518086990519993285655852781
         },
         {
-            0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b,
-            0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa
+            4082367875863433681332203403145435568316851327593401208105741076214120093531,
+            8495653923123431417604973247489272438418190587263600148770280649306958101930
         },
         {0, 1},
         {0, 1}
@@ -88,40 +89,49 @@ library BN256 {
     static const FQ12 FQ12One = {FQ6Zero, FQ6One};
 
     // Curve field modulus:
-    static int P = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
+    static int P = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+
+    // Curve group modulus:
+    static const int n = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
+    // r3 is R^3 where R = 2^256 mod P.
+    static const int r3 = 0x24ebbbb3a2529292df2ff66396b107a7388f899054f538a42af2dfb9324a5bb8;
+
+    // Upper bound of the eGCD mod inverse loop:
+    static const int UB = 368; 
 
     // xiToPMinus1Over6 is ξ^((p-1)/6) where ξ = i+9.
     static const FQ2 xiToPMinus1Over6 = {
-        0x246996f3b4fae7e6a6327cfe12150b8e747992778eeec7e5ca5cf05f80f362ac,
-        0x1284b71c2865a7dfe8b99fdd76e68b605c521e08292f2176d60b35dadcc9e470
+        16469823323077808223889137241176536799009286646108169935659301613961712198316,
+        8376118865763821496583973867626364092589906065868298776909617916018768340080
     };
 
     // xiTo2PMinus2Over3 is ξ^((2p-2)/3) where ξ = i+9.
     static const FQ2 xiTo2PMinus2Over3 = {
-        0x2c145edbe7fd8aee9f3a80b03b0b1c923685d2ea1bdec763c13b4711cd2b8126,
-        0x05b54f5e64eea80180f3c0b75a181e84d33365f7be94ec72848a1f55921ea762
+        19937756971775647987995932169929341994314640652964949448313374472400716661030,
+        2581911344467009335267311115468803099551665605076196740867805258568234346338
     };
 
     // xiToPMinus1Over2 is ξ^((p-1)/2) where ξ = i+9.
     static const FQ2 xiToPMinus1Over2 = {
-        0x07c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3,
-        0x063cf305489af5dcdc5ec698b6e2f9b9dbaae0eda9c95998dc54014671a0135a
+        3505843767911556378687030309984248845540243509899259641013678093033130930403,
+        2821565182194536844548159561693502659359617185244120367078079554186484126554
     };
 
     // xiToPMinus1Over3 is ξ^((p-1)/3) where ξ = i+9.
     static const FQ2 xiToPMinus1Over3 = {
-        0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2,
-        0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
+        10307601595873709700152284273816112264069230130616436755625194854815875713954,
+        21575463638280843010398324269430826099269044274347216827212613867836435027261
     };
 
     // xiTo2PSquaredMinus2Over3 is ξ^((2p²-2)/3) where ξ = i+9 (a cubic root of unity, mod p).
-    static const FQ xiTo2PSquaredMinus2Over3 = 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177fffffe;
+    static const FQ xiTo2PSquaredMinus2Over3 = 2203960485148121921418603742825762020974279258880205651966;
     
     // xiToPSquaredMinus1Over3 is ξ^((p²-1)/3) where ξ = i+9.
-    static const FQ xiToPSquaredMinus1Over3 = 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48;
+    static const FQ xiToPSquaredMinus1Over3 = 21888242871839275220042445260109153167277707414472061641714758635765020556616;
 
     // xiToPSquaredMinus1Over6 is ξ^((1p²-1)/6) where ξ = i+9 (a cubic root of -1, mod p).
-    static const FQ xiToPSquaredMinus1Over6 = 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd49;
+    static const FQ xiToPSquaredMinus1Over6 = 21888242871839275220042445260109153167277707414472061641714758635765020556617;
 
     static function modReduce(int k, int modulus) : int {
         int res = k % modulus;
@@ -197,6 +207,20 @@ library BN256 {
         int tx_2 = (a.x * a.y) * 2;
 
         return {modReduce(tx_2, P), modReduce(ty_2, P)};
+    }
+
+    static function modInverseEGCD(int x, int n) : int {
+        // The following script already does modular reduction at the start so there's no
+        // need to normalize x before function call.
+        asm {
+            OP_2DUP OP_MOD OP_DUP OP_0 OP_LESSTHAN OP_IF OP_DUP OP_2 OP_PICK OP_ADD OP_ELSE OP_DUP OP_ENDIF OP_NIP OP_2 OP_ROLL OP_DROP
+            OP_DUP OP_TOALTSTACK OP_TOALTSTACK OP_TOALTSTACK
+            OP_1 OP_0 OP_1
+            loop(UB) {
+                OP_FROMALTSTACK OP_FROMALTSTACK OP_2DUP OP_DUP OP_IF OP_TUCK OP_MOD OP_TOALTSTACK OP_TOALTSTACK OP_DIV OP_MUL OP_SUB OP_TUCK OP_ELSE OP_TOALTSTACK OP_TOALTSTACK OP_DROP OP_DROP OP_ENDIF
+            }
+            OP_FROMALTSTACK OP_FROMALTSTACK OP_DROP OP_DROP OP_DROP OP_FROMALTSTACK OP_SWAP OP_NIP
+        }
     }
 
     static function modInverseBranchlessP(int x) : int {
@@ -799,6 +823,7 @@ library BN256 {
             if (a.z == 0) {
                 res = {0, 1, 0, 0};
             } else {
+
                 FQ zInv = modInverseBranchlessP(a.z);
                 FQ t = modReduce(a.y * zInv, P);
                 FQ zInv2 = modReduce(zInv * zInv, P);
@@ -965,6 +990,40 @@ library BN256 {
         return res;
     }
 
+    static function mulG2Point(G2Point a, int n) : G2Point {
+        TwistPoint res = mulTwistPoint(
+                createTwistPoint(a),
+                n
+        );
+        
+        return getG2Point(res);
+    }
+
+    static function mulTwistPoint(TwistPoint a, int m) : TwistPoint {
+        // Double and add method.
+        // Lowest bit to highest.
+        TwistPoint t =   {FQ2Zero, FQ2Zero, FQ2Zero, FQ2Zero};
+        TwistPoint sum = {FQ2Zero, FQ2Zero, FQ2Zero, FQ2Zero};
+
+        bytes mb = reverseBytes(num2bin(m, S), S);
+        bool firstOne = false;
+
+        loop (CURVE_BITS_P8) : i {
+            if (firstOne) {
+                t = doubleTwistPoint(sum);
+            }
+
+            if ((mb & (mask << ((CURVE_BITS_P8 - 1) - i))) != zero) {
+                firstOne = true;
+                sum = addTwistPoints(t, a);
+            } else {
+                sum = t;
+            }
+        }
+
+        return sum;
+    }
+
     static function makeAffineTwistPoint(TwistPoint a) : TwistPoint {
         TwistPoint res = a; 
         if (a.z != {0, 1}) {
@@ -1018,7 +1077,6 @@ library BN256 {
     }
 
 }
-
 
 
 
@@ -1781,59 +1839,16 @@ library BN256Pairing {
             );
     }
 
-    static function pairCheckP4PrecalcInternal(
-            CurvePoint a0, TwistPoint b0,
-    	    FQ12 millerBetaAlpha,
-            CurvePoint a2, TwistPoint b2,
-            CurvePoint a3, TwistPoint b3
-            ) : bool {
-        FQ12 acc = BN256.FQ12One;
-
-        a0 = BN256.makeAffineCurvePoint(a0);
-        a2 = BN256.makeAffineCurvePoint(a2);
-        a3 = BN256.makeAffineCurvePoint(a3);
-
-        if (!BN256.isInfCurvePoint(a0) && !BN256.isInfTwistPoint(b0)) {
-            acc = BN256.mulFQ12(acc, miller(b0, a0));
-        }
-        acc = BN256.mulFQ12(acc, millerBetaAlpha);
-        if (!BN256.isInfCurvePoint(a2) && !BN256.isInfTwistPoint(b2)) {
-            acc = BN256.mulFQ12(acc, miller(b2, a2));
-        }
-        if (!BN256.isInfCurvePoint(a3) && !BN256.isInfTwistPoint(b3)) {
-            acc = BN256.mulFQ12(acc, miller(b3, a3));
-        }
-
-        acc = finalExponentiation(acc);
-
-        return acc == BN256.FQ12One;
-    }
-
-    // Check four pairs.
-    // A * B + inputs * (-gamma) + C * (-delta) == alpha * beta
-    // where alpha * beta is precalculated.
-    static function pairCheckP4Precalc(
-            G1Point a0, G2Point b0,
-            FQ12 millerBetaAlpha,
-            G1Point a2, G2Point b2,
-            G1Point a3, G2Point b3) : bool {
-        return pairCheckP4PrecalcInternal(
-                BN256.createCurvePoint(a0), BN256.createTwistPoint(b0),
-                millerBetaAlpha,
-                BN256.createCurvePoint(a2), BN256.createTwistPoint(b2),
-                BN256.createCurvePoint(a3), BN256.createTwistPoint(b3)
-            );
-    }
 
 }
 
 
-
 struct VerifyingKey {
-    FQ12 millerb1a1;
+    G1Point alpha;
+    G2Point beta;
     G2Point gamma;
     G2Point delta;
-    G1Point[ZKSNARK.N_1] gamma_abc; 
+    G1Point[ZKSNARK.N_1] gamma_abc;
 }
 
 struct Proof {
@@ -1846,50 +1861,60 @@ struct Proof {
 library ZKSNARK {
 
     static const VerifyingKey vk = {{
-                {
-                    {0x20c6bdecdcef49221be6ac3163506e85f03edf4222f7d961fafb602de6e6f043, 0x1977dd1c895ed533608db078e6307f45337eb282e78d40c19940b0f0d84d52ae},
-                    {0x00c68e0876d62557e21a0a2ffe409c4301621fffbdb052fa48747977aaac9aac, 0x073e1b109e78c7e50b258a37bb5aebaeb704f83728ebea8ec4c99aa5a9f35f03},
-                    {0x04836ccedec6706230b58437117a9dd02fec33c4cae1e9140ac3f0e09d471f01, 0x2c6564aaf5c0280f6c4203b8891a7db177be1bae92e819ae5ff2717701cf81c0}
-                },
-                {
-                    {0x0527d8d33c227cde95e0a227abe36bef60b49ecccb9ef2b1b81ab04b043b5d65, 0x0133e0623703afb843f3e0239209137ee7618463fda666518c13fbcf44fe3001},
-                    {0x12de999d94f8f7244c41ee67638ff9732d5d42a35273d06679de7178c484b209, 0x23d9a36eec68c8fcc1947d9f63cb80de76cb69379d666d009a877a5db4d3eb56},
-                    {0x068e5613f035b29effa4850de033b1c1fa2068cd76bf10583689fb2733a071f9, 0x00175559170bda39f9a56db6789b770d3f822f969c24ae3bdc55f5a781c94ec1}
-                }
+                3273010330605885847284747970723982359612709272362947403147326374269289905832,
+                14268475020824846977878153530785437263946710645500466139321819793698416934730
             },{
                 {
-                    0x24f67231c416a2146c7330afe77a32091095b08a2732d123f432d3dba720c255,
-                    0x1128345be03b4e4d7a9ac13959a44137a8c31dadbc02d633e14772ee978a4167
+                    17657799923329022402088395978040225031378310015074491877084514272420287527449,
+                    6038764525601759984570168644359089457309021136587185227533118685649430387062
                 }, 
                 {
-                    0x127a0439e8fd02fe63a4dc8fad0673634ad739b8509f756fa66cd4ef65893cd5,
-                    0x1770024cebcb690fd1d9c25863649a589608473368446a857ed45dc5f8fc0b7d
+                    8947380125021849146596780946575202074858180356639864003663699378766944279150,
+                    17476057495716327522832788770781825691190724015916283761999765503020381902312
                 }
             },{
                 {
-                    0x2df9d57015fb6fa9408b7be6aa1927b0300999950a32765b2170708f635556c6,
-                    0x18ea441e8f9b7e26099328050b4898340d2859e2f1e6017326e4e7468402c08a
+                    10857046999023057135944570762232829481370756359578518086990519993285655852781,
+                    11559732032986387107991004021392285783925812861821192530917403151452391805634
                 }, 
                 {
-                    0x13ade0490ce667d50da6cd49781e852ff6ce05599ebde70c9347e8a53081f901,
-                    0x2bc5f209f198b2a473ba4bca9fa066827d04d82759988ab5137bdd38268c677a
+                    8495653923123431417604973247489272438418190587263600148770280649306958101930,
+                    4082367875863433681332203403145435568316851327593401208105741076214120093531
                 }
-            },[{
-                0x1d941f57e3a4ba402e8668bb677674310ce7b64dd237c89b07044f0bff4f4b13,
-                0x0ef7ae0ac93e53360f4d7cc82987b4965ea9ee7cba53e91ad1a952606299cd55
             },{
-                0x29e24cbc07941ab9f864981a4011d60edb67c7d43d745918bea620e6605a3651,
-                0x0f572634fcf72c2554b601d967000642ac792f70557a578e026145d84c4c5c6d
-            },{
-                0x25c229eec11f2cff1fd2c03b2af40943d0486ba8459ab006ea3e2ac6b2ef229c,
-                0x1fd61d5a58d975df50cb82d578a679690b6789f04cadd9d7af15ae0dafe64c55
-            },{
-                0x1235a20772ef77841690cd5892be522ff807b1e15eaf37a5a339f6cee36aa991,
-                0x15c1687300399cffacc48d94251220ee7d30321a25a1c6b9a4dae12e9956a1d3
-            },{
-                0x1c0a9a098fbf37413c372c777064e6c9ff5fdb07ac99ee2f92afc852907b8895,
-                0x0c27da7a994a7d8987e842297e1648211705488f3d3495054b8b9aa7e811c3f3
-            }]};
+                {
+                    17528942434124605722141785871191978541485742001187305868947530591542772738383,
+                    16641873728949909559914322882057416466785952529995469218480571854162347928416
+                }, 
+                {
+                    12475373636246391789229385713791556792258894482222724128199368012388890955390,
+                    4188130190584024690042954988817452470722130146624088432772156981006997346768
+                }
+            },[
+                { 
+                    7415552390911215149176905047573528277835219289851412048588533915882690983669,
+                    3797839776393534577340642894071800312203226689543938914994254613609235678665
+                },  
+                { 
+                    16140402653287872707773943298342469316115248547980829905511181680588907756387,
+                    19247341314132687650874090935799239046808633119554163945312890563453178260841
+                },  
+                { 
+                    9858650073969644406011869311336888698146395416841805470441181601950712387615,
+                    19768432986068649693722803093554863809822133411653584378490004626949469429216
+                },  
+                { 
+                    16616797485988935544709431293446692524144919234595045625584808072899374695398,
+                    12921454141679554593516867104891261547255648918447993341778709328585408507242
+                },  
+                { 
+                    9095600651190274603239098809402277525084202628465230266428858141745285525173,
+                    9036252035061226395872680619215793619723309446795060408671922942521560503587
+                } 
+            ]};
+
+
+
 
     // Number of inputs.
     static const int N = 4;
@@ -1899,7 +1924,6 @@ library ZKSNARK {
     static function verify(int[ZKSNARK.N] inputs, Proof proof) : bool {
 
         G1Point vk_x = vk.gamma_abc[0];
-
         
         loop (N) : i {
             G1Point p = BN256.mulG1Point(
@@ -1908,12 +1932,19 @@ library ZKSNARK {
             );
             vk_x = BN256.addG1Points(vk_x, p);
         }
-
-        return BN256Pairing.pairCheckP4Precalc(
-                {proof.a.x, -proof.a.y}, proof.b,
-                vk.millerb1a1,
-                vk_x, vk.gamma,
-                proof.c, vk.delta);
+        
+        return BN256Pairing.pairCheckP4(
+            {proof.a.x, -proof.a.y}, proof.b,
+            vk.alpha, vk.beta,
+            vk_x, vk.gamma,
+            proof.c, vk.delta);
     }
 
+}
+
+contract Verifier {
+
+    public function unlock(int[ZKSNARK.N] inputs, Proof proof) {
+        require(ZKSNARK.verify(inputs, proof));
+    }
 }

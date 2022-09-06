@@ -19,6 +19,11 @@
 /circuits/witness
 /circuits/out*
 
+/circuits/**/*.ptau
+/circuits/**/*.zkey
+/circuits/**/*.r1cs
+/circuits/battleship_js
+
 # misc
 .DS_Store
 .env.local

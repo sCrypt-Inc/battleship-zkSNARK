@@ -5,9 +5,8 @@ import { ContractUtxos, Player, PlayerPrivkey, PlayerPublicKey } from '../storag
 import { web3 } from '../web3';
 import Balance from './balance';
 import { GameView } from './GameView';
-
 import { buildMimc7 } from 'circomlibjs';
-import ZKPWorker from '../zkp.worker';
+
 import {
   coordsToIndex, generateEmptyLayout,
   generateRandomIndex,
@@ -15,6 +14,7 @@ import {
 } from './layoutHelpers';
 
 import Queue from "queue-promise";
+import { CircomProvider } from '../circomProvider';
 
 const AVAILABLE_SHIPS = [
   {
@@ -44,6 +44,29 @@ const AVAILABLE_SHIPS = [
   },
 ];
 
+
+function runCircom(privateInputs, publicInputs) {
+  return CircomProvider
+    .init()
+    .then(async () => {
+      return CircomProvider.generateProof({
+        "boardHash": publicInputs[0],
+        "guess": publicInputs.slice(1),
+        "ships": privateInputs
+      });
+    })
+    .then(async ({ proof, publicSignals, isHit }) => {
+      const isVerified = await CircomProvider.verify({ proof, publicSignals });
+      return { isVerified, proof, isHit };
+    })
+    .catch(e => {
+      console.error('zkp.worker error:', e)
+      return {
+        isVerified: false
+      }
+    })
+}
+
 export const Game = ({ desc }) => {
   const [gameState, setGameState] = useState('placement');
   const [winner, setWinner] = useState(null);
@@ -62,8 +85,6 @@ export const Game = ({ desc }) => {
   const [deployTxid, setDeployTxid] = useState('');
   const [balance, setBalance] = useState(-1);
   const [queue, setQueue] = useState(null);
-  const [zkpWorkerForPlayer, setZKPWorkerForPlayer] = useState(null);
-  //const [zkpWorkerForComputer, setZKPWorkerForComputer] = useState(null);
 
   const hp2CRef = useRef(hitsProofToComputer);
   useEffect(() => {
@@ -98,72 +119,6 @@ export const Game = ({ desc }) => {
     })
   }, []);
 
-  const zkpWorkerMsgHandler = async (event) => {
-
-    const { ctx, isVerified, proof } = event.data;
-
-    if (isVerified) {
-
-
-      queue.enqueue(async () => {
-
-        const isPlayerFired = ctx.role === 'player';
-
-        const contractUtxo = ContractUtxos.getlast().utxo;
-  
-        const Proof = battleShipContract.getTypeClassByType("Proof");
-        const G1Point = battleShipContract.getTypeClassByType("G1Point");
-        const G2Point = battleShipContract.getTypeClassByType("G2Point");
-        const FQ2 = battleShipContract.getTypeClassByType("FQ2");
-  
-        contractUtxo.script = battleShipContract.lockingScript.toHex();
-
-        await move(isPlayerFired, ctx.targetIdx, contractUtxo, ctx.isHit, new Proof({
-          a: new G1Point({
-            x: new Int(proof.proof.a[0]),
-            y: new Int(proof.proof.a[1]),
-          }),
-          b: new G2Point({
-            x: new FQ2({
-              x: new Int(proof.proof.b[0][0]),
-              y: new Int(proof.proof.b[0][1]),
-            }),
-            y: new FQ2({
-              x: new Int(proof.proof.b[1][0]),
-              y: new Int(proof.proof.b[1][1]),
-            })
-          }),
-          c: new G1Point({
-            x: new Int(proof.proof.c[0]),
-            y: new Int(proof.proof.c[1]),
-          })
-        }), ctx.newStates)
-          .then(() => {
-  
-            if (isPlayerFired) {
-              setHitsProofToPlayer(new Map(hp2PRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
-            } else {
-              setHitsProofToComputer(new Map(hp2CRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
-            }
-          })
-          .catch(e => {
-            console.error("call contract error:", e);
-            alert("call contract error:" + e.message);
-          })
-      })
-    }
-  }
-
-  useEffect((battleShipContract) => {
-    const zkWorkers = new ZKPWorker();
-    zkWorkers.addEventListener('message', zkpWorkerMsgHandler);
-    setZKPWorkerForPlayer(zkWorkers);
-
-    return (() => {
-      zkWorkers.terminate();
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [battleShipContract]);
 
 
   // *** PLAYER ***
@@ -507,7 +462,7 @@ export const Game = ({ desc }) => {
     const isPlayerFired = role === 'player';
     const privateInputs = toPrivateInputs(isPlayerFired ? computerShips : placedShips);
     const position = indexToCoords(targetIdx);
-    const publicInputs = [isPlayerFired ? computerShipsHash : placedShipsHash, position.x.toString(), position.y.toString(), isHit];
+    const publicInputs = [isPlayerFired ? computerShipsHash : placedShipsHash, position.x, position.y];
 
     if (isPlayerFired) {
       setHitsProofToPlayer(new Map(hitsProofToPlayer.set(targetIdx, { status: 'pending' })));
@@ -515,20 +470,57 @@ export const Game = ({ desc }) => {
       setHitsProofToComputer(new Map(hitsProofToComputer.set(targetIdx, { status: 'pending' })));
     }
 
-    const zkpWorker = zkpWorkerForPlayer;
 
-    // send message to worker
-    zkpWorker.postMessage({
-      // message id
-      ctx: {
-        role,
-        targetIdx,
-        isHit,
-        newStates
-      },
-      privateInputs,
-      publicInputs
-    });
+    runCircom(privateInputs, publicInputs)
+      .then(async ({isVerified, proof, isHit }) => {
+        console.log(isVerified)
+        console.log(isHit)
+        console.log(proof)
+        const isPlayerFired = role === 'player';
+
+        const contractUtxo = ContractUtxos.getlast().utxo;
+
+        const Proof = battleShipContract.getTypeClassByType("Proof");
+        const G1Point = battleShipContract.getTypeClassByType("G1Point");
+        const G2Point = battleShipContract.getTypeClassByType("G2Point");
+        const FQ2 = battleShipContract.getTypeClassByType("FQ2");
+
+        contractUtxo.script = battleShipContract.lockingScript.toHex();
+
+        await move(isPlayerFired, targetIdx, contractUtxo, isHit, new Proof({
+          a: new G1Point({
+            x: new Int(proof.pi_a[0]),
+            y: new Int(proof.pi_a[1]),
+          }),
+          b: new G2Point({
+            x: new FQ2({
+              x: new Int(proof.pi_b[0][0]),
+              y: new Int(proof.pi_b[0][1]),
+            }),
+            y: new FQ2({
+              x: new Int(proof.pi_b[1][0]),
+              y: new Int(proof.pi_b[1][1]),
+            })
+          }),
+          c: new G1Point({
+            x: new Int(proof.pi_c[0]),
+            y: new Int(proof.pi_c[1]),
+          })
+        }), newStates)
+          .then(() => {
+
+            if (isPlayerFired) {
+              setHitsProofToPlayer(new Map(hp2PRef.current.set(targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
+            } else {
+              setHitsProofToComputer(new Map(hp2CRef.current.set(targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
+            }
+          })
+          .catch(e => {
+            console.error("call contract error:", e);
+            alert("call contract error:" + e.message);
+          })
+      });
+
   }
 
   // *** Zero Knowledge Proof
@@ -557,20 +549,16 @@ export const Game = ({ desc }) => {
   }
 
   const toPrivateInputs = (ships) => {
-    return sortShipsForZK(ships)
-      .reduce(
-        (res, ship) => {
-          return res.concat([
-            ship.position.x.toString(),
-            ship.position.y.toString(),
-            ship.orientation === "horizontal" ? '1' : '0'
-          ]);
-        },
-        []
-      )
+
+    return ships.map(ship =>
+      [
+        ship.position.x,
+        ship.position.y,
+        ship.orientation === "horizontal" ? 1 : 0
+      ]
+    )
   }
 
-  // *** End ZKP **
 
   const sunkSoundRef = useRef(null);
   const clickSoundRef = useRef(null);
