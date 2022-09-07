@@ -109,7 +109,7 @@ export const Game = ({ desc }) => {
   useEffect(() => {
     const queue = new Queue({
       concurrent: 1,
-      interval: 20000
+      interval: 2000
     });
 
     setQueue(queue)
@@ -135,7 +135,12 @@ export const Game = ({ desc }) => {
 
   const move = async (isPlayerFired, index, contractUtxo, hit, proof, newStates) => {
 
-    console.log('call move ...', 'index=', index, newStates)
+    console.log('call move ...', 'index=', index, newStates, contractUtxo)
+
+    if (contractUtxo.satoshis < 1300000) {
+      alert('Not enough funds.');
+      return;
+    }
 
     return web3.call(contractUtxo, async (tx) => {
 
@@ -271,7 +276,7 @@ export const Game = ({ desc }) => {
 
       ContractUtxos.clear();
 
-      const rawTx = await web3.deploy(contract, 2000000);
+      const rawTx = await web3.deploy(contract, 2600000);
 
       ContractUtxos.add(rawTx, 0, -1);
 
@@ -471,11 +476,13 @@ export const Game = ({ desc }) => {
     }
 
 
-    runCircom(privateInputs, publicInputs)
+    queue.enqueue(async () => {
+      await runCircom(privateInputs, publicInputs)
       .then(async ({isVerified, proof, isHit }) => {
-        console.log(isVerified)
-        console.log(isHit)
+        console.log("isVerified", isVerified)
+        console.log("isHit", isHit)
         console.log(proof)
+        
         const isPlayerFired = role === 'player';
 
         const contractUtxo = ContractUtxos.getlast().utxo;
@@ -520,6 +527,9 @@ export const Game = ({ desc }) => {
             alert("call contract error:" + e.message);
           })
       });
+    });
+
+    
 
   }
 

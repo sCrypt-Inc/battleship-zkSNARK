@@ -36,7 +36,7 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "single-test": "cross-env NODE_OPTIONS=--max-old-space-size=8192 mocha --reporter spec --timeout 1200000000",
-    "zkcompile": "sh scripts/setup-circom.sh"
+    "setup": "sh scripts/setup-circom.sh"
   },
   "eslintConfig": {
     "extends": "react-app"

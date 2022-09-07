@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+mkdir -p public/zk
+
 cd circuits
 
 CONTRACTS="battleship"
@@ -21,7 +23,11 @@ for contract in $CONTRACTS; do
 
   cp ${contract}_js/${contract}.wasm circuit_final.zkey verification_key.json ../public/zk/
   cp ../node_modules/snarkjs/build/snarkjs.min.js ../public/zk/
-  echo "ok! ${contract}"
-
+  
   cd ..
+  echo "compiling ./contracts/battleship.scrypt ..."
+  npx scryptlib ./contracts/battleship.scrypt
+  cp ./out/battleship_desc.json ./public/battleship_debug_desc.json
+  echo "setup successfully!"
+
 done
