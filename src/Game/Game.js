@@ -60,7 +60,7 @@ function runCircom(privateInputs, publicInputs) {
       return { isVerified, proof, isHit };
     })
     .catch(e => {
-      console.error('zkp.worker error:', e)
+      console.error('runCircom error:', e)
       return {
         isVerified: false
       }
