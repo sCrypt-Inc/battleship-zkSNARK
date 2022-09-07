@@ -9,10 +9,23 @@ Install the ZoKrates CLI:
 curl -Ls https://scrypt.io/scripts/setup-zokrates.sh | sh
 ```
 
+Or install the Circom CLI:
+
+```
+curl -Ls https://scrypt.io/scripts/setup-circom.sh | sh
+```
+
+
 Setup and check the zkSNARK verifier:
 
 ```
-sh ./scripts/setup.sh
+npm run setup
+```
+
+Test the zkSNARK verifier:
+
+```
+node verifier.js
 ```
 
 # Start
