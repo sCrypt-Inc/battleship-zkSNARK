@@ -31,7 +31,9 @@ export class Gorillapool {
                 data: Buffer.from(txhex, 'hex'),
                 headers: {
                     'Accept': 'text/plain',
-                    'Content-Type': 'application/octet-stream'
+                    'Content-Type': 'application/octet-stream',
+                    'Expiry': '2023-09-11 12:28:44.099572198 +0000 UTC',
+                    'Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIyMDIzLTA5LTExVDEyOjI4OjQ0LjA5OTU3MjE5OFoiLCJuYW1lIjoibmFubyJ9.hPTPj8ZClo7n9f_9ZJVWonvrNBlWj1igv88uIYUEHTU'
                 },
                 timeout: time,
                 maxBodyLength: Infinity
