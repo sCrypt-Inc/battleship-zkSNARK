@@ -66,6 +66,7 @@ async function run() {
 
     console.log("Proof: ");
     console.log(JSON.stringify(proof, null, 1));
+    console.log("publicSignals: ", publicSignals);
 
     const vKey = JSON.parse(fs.readFileSync("./circuits/verification_key.json"));
 
