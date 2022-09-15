@@ -24,8 +24,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
-    "scryptlib": "^1.0.4",
-    "zokrates-js": "^1.1.1",
+    "scryptlib": "1.0.7-beta2",
     "snarkjs": "https://github.com/sCrypt-Inc/snarkjs.git"
   },
   "scripts": {

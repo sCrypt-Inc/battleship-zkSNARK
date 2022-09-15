@@ -45,9 +45,9 @@ export class web3 {
 
     return wallet.listUnspent(amountInContract, {
       purpose: 'listUnspent'
-    }).then((utxos: UTXO[]) => {
+    }).then(async (utxos: UTXO[]) => {
       if(utxos.length === 0) {
-        throw new Error('no utxo available')
+        throw new Error('Insufficient balance!')
       }
       const tx = new bsv.Transaction();
       tx.from([utxos[0]])
@@ -57,7 +57,11 @@ export class web3 {
         }))
         .change(changeAddress);
 
-      return wallet.signRawTransaction(tx.toString(), utxos[0].script, utxos[0].satoshis, 0, SignType.ALL);
+        const unlockScript = await wallet.signRawTransaction(tx.toString(), utxos[0].script, utxos[0].satoshis, 0, SignType.ALL);
+
+        tx.inputs[0].setScript(bsv.Script.fromHex(unlockScript));
+
+        return tx.toString();
     }).then(async (rawTx: string) => {
       await web3.sendRawTx(rawTx);
       return rawTx;
@@ -68,18 +72,18 @@ export class web3 {
     cbBuildTx: (tx: bsv.Transaction) => Promise<void>,
   ): Promise<string> {
     const tx = new bsv.Transaction();
+
+    const prevLockingScript = bsv.Script.fromHex(contractUtxo.script);
     tx.addInput(new bsv.Transaction.Input({
       prevTxId: contractUtxo.txId,
       outputIndex: contractUtxo.outputIndex,
       script: new bsv.Script(), // placeholder
       output: new bsv.Transaction.Output({
-        script: contractUtxo.script,
+        script: prevLockingScript,
         satoshis: contractUtxo.satoshis,
       })
     }));
-
     await cbBuildTx(tx);
-
     const rawTx = tx.toString();
     await web3.sendRawTx(rawTx);
     return rawTx;

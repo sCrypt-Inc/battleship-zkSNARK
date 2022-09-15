@@ -8,6 +8,7 @@ import { Footer } from './Footer';
 import './css/style.css';
 import { Network, SensiletWallet, web3} from './web3';
 import { initPlayer } from './storage';
+import { bsv } from 'scryptlib/dist';
 
 export const App = () => {
   const [appState, setAppState] = useState('welcome'); // play or welcome
@@ -15,6 +16,8 @@ export const App = () => {
   const [desc, setDesc] = useState(null); // play or welcome
 
   useEffect(() => {
+
+    bsv.Transaction.FEE_PER_KB = 0.0001
     const script = document.createElement('script');
   
     script.src = "/zk-battleship/zk/snarkjs.min.js";

@@ -137,11 +137,8 @@ export const Game = ({ desc }) => {
 
     console.log('call move ...', 'index=', index, newStates, contractUtxo)
 
-    if (contractUtxo.satoshis < 1300000) {
-      alert('Not enough funds.');
-      return;
-    }
 
+    console.time('t0')
     return web3.call(contractUtxo, async (tx) => {
 
       if (newStates.successfulYourHits === 17) {
@@ -212,6 +209,7 @@ export const Game = ({ desc }) => {
 
 
     }).then(async rawTx => {
+      console.timeEnd('t0')
       ContractUtxos.add(rawTx, isPlayerFired, index);
 
       battleShipContract.successfulYourHits = newStates.successfulYourHits;

@@ -68,7 +68,6 @@ export class SensiletWallet extends wallet {
     sigHashType: SignType
   ): Promise<string> {
 
-    const tx = new bsv.Transaction(rawtx);
     let res = await this.sensilet.signTx({
       list:[
         {
@@ -86,9 +85,7 @@ export class SensiletWallet extends wallet {
     .add(Buffer.from(res.sigList[0].sig,'hex'))
     .add(Buffer.from(res.sigList[0].publicKey,'hex'));
 
-    tx.inputs[inputIndex].setScript(unlockScript);
-
-    return tx.toString();
+    return unlockScript.toHex();
   }
 
 
