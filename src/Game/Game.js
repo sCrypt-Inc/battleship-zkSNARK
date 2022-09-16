@@ -1,7 +1,7 @@
 /* global BigInt */
 import React, { useEffect, useRef, useState } from 'react';
 import { bsv, buildContractClass, getPreimage, Int, PubKey, signTx } from 'scryptlib';
-import { ContractUtxos, Player, PlayerPrivkey, PlayerPublicKey } from '../storage';
+import { ContractUtxos, Player, PlayerPKH, PlayerPrivkey, PlayerPublicKey } from '../storage';
 import { web3 } from '../web3';
 import Balance from './balance';
 import { GameView } from './GameView';
@@ -151,7 +151,7 @@ export const Game = ({ desc }) => {
 
         tx.setOutput(0, (tx) => {
           return new bsv.Transaction.Output({
-            script: bsv.Script.buildPublicKeyHashOut(PlayerPrivkey.get(Player.Computer)),
+            script: bsv.Script.buildPublicKeyHashOut(PlayerPKH.get(Player.Computer)),
             satoshis: amount,
           })
         })
@@ -165,7 +165,7 @@ export const Game = ({ desc }) => {
           }
 
           return new bsv.Transaction.Output({
-            script: bsv.Script.buildPublicKeyHashOut(PlayerPrivkey.get(Player.You)),
+            script: bsv.Script.buildPublicKeyHashOut(PlayerPKH.get(Player.You)),
             satoshis: amount,
           })
         })
