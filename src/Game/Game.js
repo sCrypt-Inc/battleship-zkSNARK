@@ -6,6 +6,7 @@ import { web3 } from '../web3';
 import Balance from './balance';
 import { GameView } from './GameView';
 import { buildMimc7 } from 'circomlibjs';
+import { useModal } from 'react-hooks-use-modal';
 
 import {
   coordsToIndex, generateEmptyLayout,
@@ -85,6 +86,67 @@ export const Game = ({ desc }) => {
   const [deployTxid, setDeployTxid] = useState('');
   const [balance, setBalance] = useState(-1);
   const [queue, setQueue] = useState(null);
+  const [description, setDescription] = useState('Please use the wallet to sign the transaction.');
+
+  
+
+  const [Modal, open, close, isOpen] = useModal('root', {
+    preventScroll: true,
+    focusTrapOptions: {
+      clickOutsideDeactivates: false,
+    },
+    components: {
+      Modal: ({ title, description, children }) => {
+        return (
+          <div
+            style={{
+              padding: '60px 100px',
+              backgroundColor: '#fff',
+              borderRadius: '10px',
+            }}
+          >
+            {title && <h1>{title}</h1>}
+            <br></br>
+            {description && <p>{description}</p>}
+            {children}
+          </div>
+        );
+      },
+      Overlay: () => {
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              right: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            }}
+          />
+        );
+      },
+      Wrapper: ({ children }) => {
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              right: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+            }}
+          >
+            {children}
+          </div>
+        );
+      },
+    },
+  });
 
   const hp2CRef = useRef(hitsProofToComputer);
   useEffect(() => {
@@ -274,7 +336,15 @@ export const Game = ({ desc }) => {
 
       ContractUtxos.clear();
 
+      open()
+
       const rawTx = await web3.deploy(contract, 20000);
+
+      setDescription("Broadcasting transaction...")
+      open()
+      await web3.sendRawTx(rawTx)
+
+      close()
 
       ContractUtxos.add(rawTx, 0, -1);
 
@@ -289,9 +359,10 @@ export const Game = ({ desc }) => {
         })
       }, 10000);
     } catch (error) {
-      console.error("deploy contract fails", error);
+      console.error("Deploying contract failed", error);
       setBattleShipContract(null);
-      alert("deploy contract error:" + error.message);
+      setDescription("Deploying contract failed:" + error.message)
+      open()
       return;
     }
 
@@ -643,6 +714,11 @@ export const Game = ({ desc }) => {
         handleFire={handleFire}
       />
       <Balance balance={balance}></Balance>
+      <Modal title="Deploying" description={description}>
+        <div>
+          <button onClick={close}>CLOSE</button>
+        </div>
+      </Modal>
     </React.Fragment>
   );
 };

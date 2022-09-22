@@ -63,7 +63,6 @@ export class web3 {
 
         return tx.toString();
     }).then(async (rawTx: string) => {
-      await web3.sendRawTx(rawTx);
       return rawTx;
     })
   }
