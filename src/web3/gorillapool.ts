@@ -27,7 +27,7 @@ export class Gorillapool {
                 data
             } = await axios({
                 method: 'post',
-                url: `https://testnet.merchantapi.gorillapool.io/mapi/tx`,
+                url: `https://testnet-mapi.gorillapool.io/mapi/tx`,
                 data: Buffer.from(txhex, 'hex'),
                 headers: {
                     'Accept': 'text/plain',
