@@ -27,7 +27,7 @@
     "react-hooks-use-modal": "^3.1.0",
     "react-scripts": "3.4.1",
     "scryptlib": "1.0.7",
-    "snarkjs": "https://github.com/sCrypt-Inc/snarkjs.git"
+    "snarkjs-scrypt": "^0.4.27"
   },
   "scripts": {
     "predeploy": "npm run build",
