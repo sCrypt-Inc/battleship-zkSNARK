@@ -22,7 +22,7 @@ for contract in $CONTRACTS; do
   snarkjs zkey export scryptverifier circuit_final.zkey ../contracts/verifier.scrypt
 
   cp ${contract}_js/${contract}.wasm circuit_final.zkey verification_key.json ../public/zk/
-  cp ../node_modules/snarkjs/build/snarkjs.min.js ../public/zk/
+  cp ../node_modules/snarkjs-scrypt/build/snarkjs.min.js ../public/zk/
   
   cd ..
   echo "compiling ./contracts/battleship.scrypt ..."
