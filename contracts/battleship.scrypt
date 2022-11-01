@@ -17,7 +17,14 @@ contract BattleShip {
     @state
     bool yourTurn;
 
-    public function move(Sig sig, int x, int y, bool hit, Proof proof, int amount, SigHashPreimage txPreimage)
+
+    @state
+    bool[100] yourHits;
+
+    @state
+    bool[100] computerHits;
+
+    public function move(Sig sig, int x, int y, bool hit, Proof proof, SigHashPreimage txPreimage)
     {
         require(Tx.checkPreimage(txPreimage));
 
@@ -26,14 +33,18 @@ contract BattleShip {
 
         PubKey pubKey = this.yourTurn ? this.you : this.computer;
         require(checkSig(sig, pubKey));
-        if (this.yourTurn) {
 
+        const int index = x * 10 + y;
+        if (this.yourTurn) {
+            require(!this.yourHits[index]);
+            this.yourHits[index] = true;
             if (hit) {
                 this.successfulYourHits++;
             }
         }
         else {
-
+            require(!this.computerHits[index]);
+            this.computerHits[index] = true;
             if (hit) {
                 this.successfulComputerHits++;
             }
@@ -45,16 +56,16 @@ contract BattleShip {
 
         if (this.successfulYourHits == 17) {
             bytes script = Utils.buildPublicKeyHashScript(hash160(this.you));
-            outputs = Utils.buildOutput(script, amount);
+            outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
         }
         else if (this.successfulComputerHits == 17) {
             bytes script = Utils.buildPublicKeyHashScript(hash160(this.computer));
-            outputs = Utils.buildOutput(script, amount);
+            outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
         }
         else {
 
             bytes outputScript = this.getStateScript();
-            outputs = Utils.buildOutput(outputScript, amount);
+            outputs = Utils.buildOutput(outputScript, SigHash.value(txPreimage));
         }
 
         // make sure the transaction contains the expected outputs
