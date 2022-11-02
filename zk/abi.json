@@ -89,9 +89,17 @@
       "name": "targetY",
       "public": true,
       "type": "field"
+    },
+    {
+      "name": "hit",
+      "public": true,
+      "type": "bool"
     }
   ],
   "output": {
-    "type": "bool"
+    "type": "tuple",
+    "components": {
+      "elements": []
+    }
   }
 }
