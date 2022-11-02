@@ -260,6 +260,10 @@ export const Game = ({ desc }) => {
       battleShipContract.successfulYourHits = newStates.successfulYourHits;
       battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
       battleShipContract.yourTurn = newStates.yourTurn;
+      battleShipContract.yourHits = newStates.yourHits;
+      battleShipContract.computerHits = newStates.computerHits;
+
+      
 
       setTimeout(async () => {
         web3.wallet.getbalance().then(balance => {
@@ -311,7 +315,7 @@ export const Game = ({ desc }) => {
 
     const contract = new BattleShip(new PubKey(PlayerPublicKey.get(Player.You)),
       new PubKey(PlayerPublicKey.get(Player.Computer)),
-      new Int(playerHash), new Int(computerHash), 0, 0, true);
+      new Int(playerHash), new Int(computerHash), 0, 0, true,new Array(100).fill(false),new Array(100).fill(false) );
 
     setBattleShipContract(contract);
 
@@ -400,10 +404,24 @@ export const Game = ({ desc }) => {
       let successfulComputerHits = computerHits.filter((hit) => hit.type === 'hit')
         .length;
 
+      const yourHits_ =  new Array(100).fill(false);
+      const computerHits_ =  new Array(100).fill(false);
+
+      hbpRef.current.map((hit) => coordsToIndex(hit.position)).forEach(v => {
+        yourHits_[v] = true
+      })
+
+      computerHits.map((hit) => coordsToIndex(hit.position)).forEach(v => {
+        computerHits_[v] = true
+      })
+
+
       handleFire('computer', index, {
         successfulYourHits: successfulYourHits,
         successfulComputerHits: successfulComputerHits,
-        yourTurn: true
+        yourTurn: true,
+        yourHits: yourHits_,
+        computerHits: computerHits_
       });
     }
   };

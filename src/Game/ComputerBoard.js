@@ -8,6 +8,7 @@ import {
   SQUARE_STATE,
   indexToCoords,
   updateSunkShips,
+  coordsToIndex,
 } from './layoutHelpers';
 
 export const ComputerBoard = ({
@@ -61,10 +62,23 @@ export const ComputerBoard = ({
       let successfulComputerHits = hitsByComputer.filter((hit) => hit.type === 'hit')
         .length;
 
+      const yourHits_ =  new Array(100).fill(false);
+      const computerHits_ =  new Array(100).fill(false);
+
+      newHits.map((hit) => coordsToIndex(hit.position)).forEach(v => {
+        yourHits_[v] = true
+      })
+
+      hitsByComputer.map((hit) => coordsToIndex(hit.position)).forEach(v => {
+        computerHits_[v] = true
+      })
+
       handleFire('player', index, {
         successfulYourHits: successfulYourHits,
         successfulComputerHits: successfulComputerHits,
-        yourTurn: false
+        yourTurn: false,
+        yourHits: yourHits_,
+        computerHits: computerHits_
       });
 
       return newHits;
@@ -83,10 +97,23 @@ export const ComputerBoard = ({
       let successfulComputerHits = hitsByComputer.filter((hit) => hit.type === 'hit')
         .length;
 
+      const yourHits_ =  new Array(100).fill(false);
+      const computerHits_ =  new Array(100).fill(false);
+
+      newHits.map((hit) => coordsToIndex(hit.position)).forEach(v => {
+        yourHits_[v] = true
+      })
+
+      hitsByComputer.map((hit) => coordsToIndex(hit.position)).forEach(v => {
+        computerHits_[v] = true
+      })
+
       handleFire('player', index, {
         successfulYourHits: successfulYourHits,
         successfulComputerHits: successfulComputerHits,
-        yourTurn: false
+        yourTurn: false,
+        yourHits: yourHits_,
+        computerHits: computerHits_
       });
       return newHits;
     }
