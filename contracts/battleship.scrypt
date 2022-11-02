@@ -24,7 +24,7 @@ contract BattleShip {
     @state
     bool[100] computerHits;
 
-    public function move(Sig sig, int x, int y, bool hit, Proof proof, SigHashPreimage txPreimage)
+    public function move(Sig sig, int x, int y, bool hit, Proof proof, int amount, SigHashPreimage txPreimage)
     {
         require(Tx.checkPreimage(txPreimage));
 
@@ -34,17 +34,17 @@ contract BattleShip {
         PubKey pubKey = this.yourTurn ? this.you : this.computer;
         require(checkSig(sig, pubKey));
 
-        const int index = x * 10 + y;
+
         if (this.yourTurn) {
-            require(!this.yourHits[index]);
-            this.yourHits[index] = true;
+            require(!this.yourHits[coordsToIndex(x,y)]);
+            this.yourHits[coordsToIndex(x,y)] = true;
             if (hit) {
                 this.successfulYourHits++;
             }
         }
         else {
-            require(!this.computerHits[index]);
-            this.computerHits[index] = true;
+            require(!this.computerHits[coordsToIndex(x,y)]);
+            this.computerHits[coordsToIndex(x,y)] = true;
             if (hit) {
                 this.successfulComputerHits++;
             }
@@ -56,19 +56,23 @@ contract BattleShip {
 
         if (this.successfulYourHits == 17) {
             bytes script = Utils.buildPublicKeyHashScript(hash160(this.you));
-            outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
+            outputs = Utils.buildOutput(script, amount);
         }
         else if (this.successfulComputerHits == 17) {
             bytes script = Utils.buildPublicKeyHashScript(hash160(this.computer));
-            outputs = Utils.buildOutput(script, SigHash.value(txPreimage));
+            outputs = Utils.buildOutput(script, amount);
         }
         else {
 
             bytes outputScript = this.getStateScript();
-            outputs = Utils.buildOutput(outputScript, SigHash.value(txPreimage));
+            outputs = Utils.buildOutput(outputScript, amount);
         }
 
         // make sure the transaction contains the expected outputs
         require(hash256(outputs) == SigHash.hashOutputs(txPreimage));
+    }
+
+    static function coordsToIndex(int x, int y) : int {
+        return y * 10 + x;
     }
 }
