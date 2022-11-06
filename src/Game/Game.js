@@ -536,7 +536,7 @@ export const Game = ({ desc }) => {
   // *** Zero Knowledge Proof
 
   const sortShipsForZK = (ships) => {
-    const SORTED_ZK_SHIP_NAMES = ['carrier', 'battleship', 'cruiser', 'submarine', 'destoryer'];
+    const SORTED_ZK_SHIP_NAMES = ['carrier', 'battleship', 'cruiser', 'submarine', 'destroyer'];
     return ships.sort((a, b) => SORTED_ZK_SHIP_NAMES.indexOf(a) - SORTED_ZK_SHIP_NAMES.indexOf(b))
   }
 
