@@ -48,7 +48,7 @@ async function zokratesProof(ships, x, y) {
   // or verify off-chain
   const isVerified = zokratesProvider.verify(verificationkey, proof);
 
-  console.log('isVerified:' + isVerified)
+  console.log('zokrates isVerified:' + isVerified)
 
   return {
     proof,
@@ -59,7 +59,7 @@ async function zokratesProof(ships, x, y) {
 
 async function run() {
 
-  console.log('generating proof ...')
+  console.log('zokrates generating proof ...')
 
   const {proof, output}  = await zokratesProof(playerShips, 0, 0);
 
