@@ -1,7 +1,7 @@
 const { existsSync, readFileSync, writeFileSync } = require('fs');
 const path = require('path');
 const { randomBytes } = require('crypto');
-
+const { buildMimc7 } = require("circomlibjs");
 const { compileContract: compileContractImpl, bsv } = require('scryptlib');
 
 const inputSatoshis = 100000
@@ -60,12 +60,12 @@ function newTx() {
 
 async function sendTx(tx) {
 
-	const txhex = tx.toString();
+    const txhex = tx.toString();
 
-	const size = Math.max(1, txhex.length / 2 / 1024); //KB
-	const time = Math.max(100000, 1000 * size);
-	
-	const {
+    const size = Math.max(1, txhex.length / 2 / 1024); //KB
+    const time = Math.max(100000, 1000 * size);
+
+    const {
         data
     } = await axios({
         method: 'post',
@@ -73,21 +73,21 @@ async function sendTx(tx) {
         data: Buffer.from(txhex, 'hex'),
         headers: {
             'Accept': 'text/plain',
-			'Content-Type': 'application/octet-stream'
+            'Content-Type': 'application/octet-stream'
         },
         timeout: time,
         maxBodyLength: Infinity
     });
 
     const payload = JSON.parse(data.payload)
-    if(payload.returnResult === 'success') {
+    if (payload.returnResult === 'success') {
         return payload.txid;
-    } else if(payload.returnResult === 'failure') {
+    } else if (payload.returnResult === 'failure') {
         console.error('sendTx error:', txhex)
         throw new Error(payload.resultDescription)
     }
 
-	throw new Error('sendTx error')
+    throw new Error('sendTx error')
 }
 
 
@@ -126,14 +126,32 @@ async function deployContract(contract, amount) {
 function createInputFromPrevTx(tx, outputIndex) {
     const outputIdx = outputIndex || 0
     return new bsv.Transaction.Input({
-      prevTxId: tx.id,
-      outputIndex: outputIdx,
-      script: new bsv.Script(), // placeholder
-      output: tx.outputs[outputIdx]
+        prevTxId: tx.id,
+        outputIndex: outputIdx,
+        script: new bsv.Script(), // placeholder
+        output: tx.outputs[outputIdx]
     })
-  }
+}
 
-  
+
+const shipHash = async (ships) => {
+    let multiplier = 1n;
+    const shipPreimage =
+        ships.reduce(
+            (res, ship, i) => {
+                const val = ships[i][0] + (ships[i][1] * 16) + (ships[i][2] * 16 * 16)
+                const r = res + BigInt(val) * multiplier;
+                multiplier *= BigInt(16 ** 3);
+                return r;
+            },
+            BigInt(0)
+        );
+    console.log('shipPreimage', shipPreimage)
+    const mimc7 = await buildMimc7();
+    return mimc7.F.toString(mimc7.hash([shipPreimage], 0));
+}
+
+
 module.exports = {
     compileContract,
     loadDesc,
@@ -142,6 +160,7 @@ module.exports = {
     deployContract,
     fetchUtxos,
     sendTx,
-    createInputFromPrevTx
+    createInputFromPrevTx,
+    shipHash
 }
 

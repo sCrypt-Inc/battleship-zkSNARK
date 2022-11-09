@@ -1,10 +1,9 @@
 const { expect } = require('chai');
-
+const snarkjs = require("snarkjs-scrypt");
 
 const { buildContractClass, bsv, PubKeyHash, toHex, Int, getPreimage, PubKey, signTx } = require('scryptlib');
 
-const { loadDesc, newTx, inputSatoshis } = require('../helper');
-const { hashShips, zokratesProof } = require('../verifier.js');
+const { loadDesc, newTx, inputSatoshis, shipHash} = require('../helper');
 
 const privateKeyPlayer = new bsv.PrivateKey.fromRandom('testnet')
 const publicKeyPlayer = bsv.PublicKey.fromPrivateKey(privateKeyPlayer)
@@ -36,8 +35,8 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
   before(async () => {
     const BattleShip = buildContractClass(loadDesc('battleship'));
 
-    const yourhash = await hashShips(playerShips);
-    const computerhash = await hashShips(computerShips);
+    const yourhash = await shipHash(playerShips);
+    const computerhash = await shipHash(computerShips);
     battleShip = new BattleShip(new PubKey(toHex(publicKeyPlayer)),
       new PubKey(toHex(publicKeyComputer)),
       new Int(yourhash), new Int(computerhash), 0, 0, true, new Array(100).fill(false),new Array(100).fill(false))
@@ -50,12 +49,18 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
 
   async function testMove(contract, ships, x, y, yourturn, newStates) {
     console.log('generating proof ...')
-    const {
-      proof,
-      output
-    } = await zokratesProof(ships, x, y);
 
-    const hit = output === 'true' ? true : false;
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve({
+      "boardHash": await shipHash(ships),
+      "guess": [
+          x,
+          y
+      ],
+      "ships": ships
+  }, "./circuits/battleship_js/battleship.wasm", "./circuits/circuit_final.zkey");
+
+
+    const hit = publicSignals[0] === "1" ? true : false;
     console.log('hit', hit)
     const tx = newTx();
 
@@ -78,22 +83,22 @@ describe('Test sCrypt contract BattleShip In Javascript', () => {
     console.log('calling contract move() function ...')
     const result = contract.move(sig, x, y, hit , new Proof({
       a: new G1Point({
-        x: new Int(proof.proof.a[0]),
-        y: new Int(proof.proof.a[1]),
+        x: new Int(proof.pi_a[0]),
+        y: new Int(proof.pi_a[1]),
       }),
       b: new G2Point({
         x: new FQ2({
-          x: new Int(proof.proof.b[0][0]),
-          y: new Int(proof.proof.b[0][1]),
+          x: new Int(proof.pi_b[0][0]),
+          y: new Int(proof.pi_b[0][1]),
         }),
         y: new FQ2({
-          x: new Int(proof.proof.b[1][0]),
-          y: new Int(proof.proof.b[1][1]),
+          x: new Int(proof.pi_b[1][0]),
+          y: new Int(proof.pi_b[1][1]),
         })
       }),
       c: new G1Point({
-        x: new Int(proof.proof.c[0]),
-        y: new Int(proof.proof.c[1]),
+        x: new Int(proof.pi_c[0]),
+        y: new Int(proof.pi_c[1]),
       })
 
     }), inputSatoshis, preimage).verify(context)

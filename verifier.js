@@ -1,26 +1,9 @@
-const snarkjs = require("snarkjs");
+const snarkjs = require("snarkjs-scrypt");
 const fs = require("fs");
-const { buildMimc7 } = require("circomlibjs");
-const { buildContractClass, buildTypeClasses, Int } = require("scryptlib/dist");
-const { loadDesc } = require("./helper");
-const assert = require('assert');
 
-const shipHash = async (ships) => {
-    let multiplier = 1n;
-    const shipPreimage =
-        ships.reduce(
-            (res, ship, i) => {
-                const val = ships[i][0] + (ships[i][1] * 16) + (ships[i][2] * 16 * 16)
-                const r = res + BigInt(val) * multiplier;
-                multiplier *= BigInt(16 ** 3);
-                return r;
-            },
-            BigInt(0)
-        );
-    console.log('shipPreimage', shipPreimage)
-    const mimc7 = await buildMimc7();
-    return mimc7.F.toString(mimc7.hash([shipPreimage], 0));
-}
+const { buildContractClass, buildTypeClasses, Int } = require("scryptlib/dist");
+const { loadDesc, shipHash } = require("./helper");
+const assert = require('assert');
 
 
 async function run() {
@@ -117,6 +100,6 @@ async function run() {
 
 }
 
-run().then(() => {
-    process.exit(0);
-});
+// run().then(() => {
+//     process.exit(0);
+// });
