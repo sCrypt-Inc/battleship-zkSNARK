@@ -2,6 +2,18 @@
 
 # Setup
 
+Install **sCrypt Compiler**:
+
+
+Your can install **sCrypt Compiler** by installing [sCrypt IDE](https://marketplace.visualstudio.com/items?itemName=bsv-scrypt.sCrypt).
+
+Or just install the compiler binary :
+
+```
+npm install
+npx scryptlib download
+```
+
 
 Install the ZoKrates CLI:
 
