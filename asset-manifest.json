@@ -1,23 +1,23 @@
 {
   "files": {
     "main.css": "/zk-battleship/static/css/main.693dd3df.chunk.css",
-    "main.js": "/zk-battleship/static/js/main.c81571c8.chunk.js",
-    "main.js.map": "/zk-battleship/static/js/main.c81571c8.chunk.js.map",
+    "main.js": "/zk-battleship/static/js/main.e8680755.chunk.js",
+    "main.js.map": "/zk-battleship/static/js/main.e8680755.chunk.js.map",
     "runtime-main.js": "/zk-battleship/static/js/runtime-main.047c42f8.js",
     "runtime-main.js.map": "/zk-battleship/static/js/runtime-main.047c42f8.js.map",
     "static/js/2.40c5aa6e.chunk.js": "/zk-battleship/static/js/2.40c5aa6e.chunk.js",
     "static/js/2.40c5aa6e.chunk.js.map": "/zk-battleship/static/js/2.40c5aa6e.chunk.js.map",
     "index.html": "/zk-battleship/index.html",
-    "precache-manifest.13e5bac953c4177672640ebe94244909.js": "/zk-battleship/precache-manifest.13e5bac953c4177672640ebe94244909.js",
+    "precache-manifest.4087035e22fb574f1f18a25fa3a38e94.js": "/zk-battleship/precache-manifest.4087035e22fb574f1f18a25fa3a38e94.js",
     "service-worker.js": "/zk-battleship/service-worker.js",
     "static/css/main.693dd3df.chunk.css.map": "/zk-battleship/static/css/main.693dd3df.chunk.css.map",
     "static/js/2.40c5aa6e.chunk.js.LICENSE.txt": "/zk-battleship/static/js/2.40c5aa6e.chunk.js.LICENSE.txt",
-    "static/js/main.c81571c8.chunk.js.LICENSE.txt": "/zk-battleship/static/js/main.c81571c8.chunk.js.LICENSE.txt"
+    "static/js/main.e8680755.chunk.js.LICENSE.txt": "/zk-battleship/static/js/main.e8680755.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.047c42f8.js",
     "static/js/2.40c5aa6e.chunk.js",
     "static/css/main.693dd3df.chunk.css",
-    "static/js/main.c81571c8.chunk.js"
+    "static/js/main.e8680755.chunk.js"
   ]
 }
