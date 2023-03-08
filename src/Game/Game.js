@@ -308,7 +308,7 @@ export const Game = ({ desc }) => {
   const startTurn = async () => {
 
     const computerShips_ = generateComputerShips();
-    const BattleShip = buildContractClass(desc);
+    const BattleShip = buildContractClass(desc); // TODO (miha) https://github.com/sCrypt-Inc/scrypt-ts/blob/master/src/smart-contract/contract.ts#L211
 
     const playerHash = await shipHash(placedShips);
     const computerHash = await shipHash(computerShips_);

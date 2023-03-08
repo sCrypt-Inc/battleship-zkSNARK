@@ -13,16 +13,19 @@ zokrates compile --debug -i battleship.zok
 
 zokrates setup
 
-zokrates export-verifier-scrypt -o ../contracts/verifier.scrypt
+zokrates export-verifier-scrypt
 
-# mv output files to public folder
-cp out abi.json verification.key proving.key ../public/zk/
+cd ..
+cp -f circuits/verifier/src/contracts/verifier.ts contracts/src/contracts/verifier.ts
+cd contracts/
+npm run compile
+cp scrypts/src/contracts/battleship.json ../public/battleship.json
+cd ..
 
 
 cd ..
 
-npx scryptlib ./contracts/battleship.scrypt
+# mv output files to public folder
+cp out abi.json verification.key proving.key ../public/zk/
 
-cp ./out/battleship_desc.json ./public/battleship_debug_desc.json
-
-
+cd ..
