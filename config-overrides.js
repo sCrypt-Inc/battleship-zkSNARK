@@ -1,46 +1,16 @@
-const path = require('path')
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = function override(config, env) {
 
-
-  const wasmExtensionRegExp = /\.wasm$/
-  config.resolve.extensions.push('.wasm')
-  config.module.rules.forEach(rule => {
-    (rule.oneOf || []).forEach(oneOf => {
-      if (oneOf.loader && oneOf.loader.indexOf('file-loader') >= 0) {
-        oneOf.exclude.push(wasmExtensionRegExp)
-      }
-    })
-  })
-
-  config.module.rules.push({
-    test: wasmExtensionRegExp,
-    include: path.resolve(__dirname, 'src'),
-    use: [{ loader: require.resolve('wasm-loader'), options: {} }]
-  })
-
-  config.module.rules.push({
-    test: /\.mjs$/,
-    include: /node_modules/,
-    type: 'javascript/auto'
-  })
-
-  if (env === 'production') {
-
-    config.module.rules.push({
-      test: /\.worker\.js$/,
-      loader: "worker-loader",
-      options: {
-        filename: "[name].[contenthash].worker.js",
-      },
-    })
-
-  } else {
-    config.module.rules.push({
-      test: /\.worker\.js$/,
-      use: { loader: 'worker-loader' }
-    })
+  config.resolve.fallback = {
+    fs: false,
+    os: false,
+    path: false,
+    module: false
   }
 
-  return config
+  config.plugins.push(new NodePolyfillPlugin({
+    excludeAliases: ['console']
+  }))
+  return config;
 }

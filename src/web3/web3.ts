@@ -1,4 +1,4 @@
-import { bsv, AbstractContract} from 'scryptlib';
+import { bsv, SmartContract} from 'scrypt-ts';
 import { UTXO, wallet, SignType } from './wallet';
 import axios from 'axios';
 
@@ -38,7 +38,7 @@ export class web3 {
   }
 
 
-  static async deploy(contract: AbstractContract, amountInContract: number): Promise<string> {
+  static async deploy(contract: SmartContract, amountInContract: number): Promise<string> {
     const wallet = web3.wallet
 
     const changeAddress = await web3.wallet.getRawChangeAddress();
@@ -71,9 +71,9 @@ export class web3 {
     tx.addInput(new bsv.Transaction.Input({
       prevTxId: contractUtxo.txId,
       outputIndex: contractUtxo.outputIndex,
-      script: new bsv.Script(), // placeholder
+      script: new bsv.Script(''), // placeholder
       output: new bsv.Transaction.Output({
-        script: contractUtxo.script,
+        script: new bsv.Script(contractUtxo.script),
         satoshis: contractUtxo.satoshis,
       })
     }));

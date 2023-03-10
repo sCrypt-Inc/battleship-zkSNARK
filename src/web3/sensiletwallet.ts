@@ -1,5 +1,5 @@
 import { UTXO, wallet, SignType, Network } from './wallet';
-import { bsv } from 'scryptlib';
+import { bsv } from 'scrypt-ts';
 import { Gorillapool} from './gorillapool';
 
 
@@ -82,7 +82,7 @@ export class SensiletWallet extends wallet {
       ]
     });
 
-    const unlockScript = new bsv.Script()
+    const unlockScript = new bsv.Script('')
     .add(Buffer.from(res.sigList[0].sig,'hex'))
     .add(Buffer.from(res.sigList[0].publicKey,'hex'));
 
@@ -157,7 +157,7 @@ export class SensiletWallet extends wallet {
 
   async getNetwork(options?: { purpose?: string; }): Promise<Network> {
     const address = await this.sensilet.getAddress();
-    const a = new bsv.Address.fromString(address);
+    const a = bsv.Address.fromString(address);
     return a.network.name === 'testnet' ? Network.Testnet : Network.Mainnet;
   }
 }
@@ -166,6 +166,6 @@ function getAddressFromP2PKH(script: string, network: Network) : string {
   const asm = bsv.Script.fromHex(script).toASM();
   //OP_DUP OP_HASH160 ${address} OP_EQUALVERIFY OP_CHECKSIG
   const pubKeyHash = asm.split(' ')[2]; //get address from script
-  const address = new bsv.Address.fromHex(`${network === Network.Testnet ?  '6f' : '00'}${pubKeyHash}`).toString();
+  const address = bsv.Address.fromHex(`${network === Network.Testnet ?  '6f' : '00'}${pubKeyHash}`).toString();
   return address
 }

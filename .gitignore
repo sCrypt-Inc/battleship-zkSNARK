@@ -10,19 +10,6 @@
 
 # production
 /build
-/out
-
-/circuits/*.scrypt
-/circuits/*.key
-/circuits/*.json
-/circuits/*.hex
-/circuits/witness
-/circuits/out*
-
-/circuits/*.zkey
-/circuits/*.ptau
-/circuits/*.r1cs
-/circuits/battleship_js
 
 # misc
 .DS_Store
@@ -30,12 +17,25 @@
 .env.development.local
 .env.test.local
 .env.production.local
-.vscode
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-!public/zk/.keep
-public/zk/
-public/*.json
+/artifact
+scrypt.index.json
+
+
+/circuits/*.key
+/circuits/*.json
+/circuits/*.hex
+/circuits/witness
+/circuits/out*
+/circuits/verifier
+
+/circuits/*.zkey
+/circuits/*.ptau
+/circuits/*.r1cs
+/circuits/battleship_js
+
+/public/zk/
