@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { Network } from './wallet';
+import { Buffer } from 'buffer';
 
 export class Whatsonchain {
     static API_PREFIX = ``;

@@ -1,6 +1,7 @@
 import { UTXO, wallet, SignType, Network } from './wallet';
 import { bsv } from 'scrypt-ts';
 import { Gorillapool} from './gorillapool';
+import { Buffer } from 'buffer';
 
 
 export class SensiletWallet extends wallet {

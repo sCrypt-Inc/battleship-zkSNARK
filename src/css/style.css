@@ -1,0 +1,192 @@
+@import './open-color.css';
+@import './board.css';
+@import './replicas.css';
+
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&family=Lexend+Tera&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway&display=swap');
+
+/* NEW FONTS */
+
+@import url('https://fonts.googleapis.com/css2?family=Asul&family=Chivo:wght@300;400;700;900&family=Libre+Franklin&display=swap');
+/* font-family: 'Asul', sans-serif;
+font-family: 'Chivo', sans-serif; */
+
+:root {
+  --regular: 'Libre Franklin', sans-serif;
+  --headlines: 'Asul', sans-serif;
+  --header: 'Chivo', sans-serif;
+  --small-space: 1em;
+  --medium-space: 2em;
+}
+
+body {
+  background-color: var(--oc-white);
+  margin: 0;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+body,
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--small-space);
+}
+
+main,
+section {
+  margin: var(--medium-space);
+  text-align: center;
+}
+
+main {
+  max-width: 35em;
+}
+
+#game-screen {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+@media screen and (max-width: 1100px) {
+  #game-screen {
+    flex-direction: column;
+  }
+}
+
+/* Box containing ships and tips */
+#available-ships,
+#player-tips {
+  width: 200px;
+  max-height: 500px;
+  padding: var(--small-space);
+  font-family: var(--headlines);
+  text-align: center;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tip-box-title {
+  font-size: 22px;
+  text-transform: uppercase;
+  color: var(--oc-red-7);
+}
+
+.player-tip,
+#firing-info {
+  margin-top: var(--small-space);
+  font-family: var(--regular);
+  text-transform: none;
+  color: var(--oc-gray-7);
+}
+
+.restart {
+  color: var(--oc-red-7);
+  font-family: var(--regular);
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  margin: var(--small-space);
+}
+
+#game-over {
+  font-size: 30px;
+}
+
+/* HEADER AND SUBTITLE */
+
+/* Entire header */
+header {
+  text-align: center;
+}
+
+h1 {
+  color: var(--oc-indigo-8);
+  font-size: 38px;
+}
+
+.subtitle {
+  font-size: 22px;
+  color: var(--oc-indigo-4);
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-family: var(--header);
+  text-transform: uppercase;
+}
+
+/* Headings used in board and tip box */
+
+h2 {
+  color: var(--oc-red-7);
+  font-family: var(--headlines);
+}
+
+/* Regular text used in subtitle and tips */
+
+p {
+  font-family: 'Libre Franklin', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* BUTTONS */
+
+button {
+  width: 170px;
+  height: 50px;
+  border-radius: 3px;
+  font-family: var(--regular);
+  /* text-transform: uppercase; */
+  font-size: 16px;
+  margin: var(--small-space);
+  border: none;
+  background-color: var(--oc-red-7);
+  color: var(--oc-gray-1);
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:active {
+  position: relative;
+  top: 1px;
+}
+
+/* FOOTER */
+
+footer,
+footer a {
+  color: var(--oc-gray-7);
+  text-align: center;
+  text-decoration: none;
+  font-family: var(--regular);
+}
+
+footer a:hover {
+  color: var(--oc-indigo-8);
+}
+
+footer a:visited {
+  color: var(--oc-indigo-4);
+}
+
+.wallet {
+  position:absolute;
+  top: 2em;
+  right:  1em;
+}

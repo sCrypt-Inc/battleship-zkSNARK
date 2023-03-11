@@ -91,7 +91,6 @@ export const Game = ({ desc }) => {
   }, [hitsByComputer]);
 
   useEffect(() => {
-
     //bsv.Transaction.FEE_PER_KB = 0.0001;
 
     const queue = new Queue({
@@ -128,22 +127,22 @@ export const Game = ({ desc }) => {
 
         await move(isPlayerFired, ctx.targetIdx, contractUtxo, output, new Proof({
           a: new G1Point({
-            x: new Int(proof.proof.a[0]),
-            y: new Int(proof.proof.a[1]),
+            x: BigInt(proof.proof.a[0]),
+            y: BigInt(proof.proof.a[1]),
           }),
           b: new G2Point({
             x: new FQ2({
-              x: new Int(proof.proof.b[0][0]),
-              y: new Int(proof.proof.b[0][1]),
+              x: BigInt(proof.proof.b[0][0]),
+              y: BigInt(proof.proof.b[0][1]),
             }),
             y: new FQ2({
-              x: new Int(proof.proof.b[1][0]),
-              y: new Int(proof.proof.b[1][1]),
+              x: BigInt(proof.proof.b[1][0]),
+              y: BigInt(proof.proof.b[1][1]),
             })
           }),
           c: new G1Point({
-            x: new Int(proof.proof.c[0]),
-            y: new Int(proof.proof.c[1]),
+            x: BigInt(proof.proof.c[0]),
+            y: BigInt(proof.proof.c[1]),
           })
         }), ctx.newStates)
           .then(() => {
@@ -162,8 +161,8 @@ export const Game = ({ desc }) => {
     }
   }
 
-  useEffect((battleShipContract) => {
-    const zkWorkers = new ZKPWorker();
+  useEffect(() => {
+    const zkWorkers = new Worker('./zkp.worker.ts')
     zkWorkers.addEventListener('message', zkpWorkerMsgHandler);
     setZKPWorkerForPlayer(zkWorkers);
 
@@ -189,6 +188,12 @@ export const Game = ({ desc }) => {
   const move = async (isPlayerFired, index, contractUtxo, hit, proof, newStates) => {
 
     console.log('call move ...', 'index=', index, 'hit=', hit, 'newStates=', newStates)
+    console.log(isPlayerFired)
+    console.log(index)
+    console.log(contractUtxo)
+    console.log(hit)
+    console.log(proof)
+    console.log(newStates)
 
     const currentInstance = battleShipContract;
     const nextInstance = currentInstance.next()
@@ -196,16 +201,22 @@ export const Game = ({ desc }) => {
     const initBalance = currentInstance.from?.tx.outputs[currentInstance.from?.outputIndex].satoshis as number;
 
     // Update contract state:
-    Object.assign(nextInstance, newStates); // TODO (miha)
+    //Object.assign(nextInstance, newStates); // TODO (miha)
 
-    BattleShip.bindTxBuilder('move', async (options: BuildMethodCallTxOptions<SmartContract>, sig: Sig) => {
-      
-      if (nextInstance.successfulPlayerHits == 17n) {
-        
-      }
+    //BattleShip.bindTxBuilder('move', async (options: BuildMethodCallTxOptions<SmartContract>, sig: Sig) => {
+
+    //  const unsignedTx: bsv.Transaction = new bsv.Transaction()
+    //    .addInputFromPrevTx(currentInstance.from?.tx as bsv.Transaction, currentInstance.from?.outputIndex)
+    //    .from(options.utxos);
+
+    //  const changeAddress = await currentInstance.signer.getDefaultAddress();
+
+    //  if (nextInstance.successfulPlayerHits == 17n) {
+
+    //  }
 
 
-    })
+    //})
 
     //return web3.call(contractUtxo, async (tx) => {
 
@@ -329,8 +340,7 @@ export const Game = ({ desc }) => {
 
   const startTurn = async () => {
     const computerShips_ = generateComputerShips();
-    let artifact = require('../../artifacts/src/contracts/zkBattleship.json');
-    BattleShip.loadArtifact(artifact)
+    BattleShip.loadArtifact(desc)
 
     const playerHash = await shipHash(placedShips);
     const computerHash = await shipHash(computerShips_);

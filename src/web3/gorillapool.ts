@@ -1,6 +1,7 @@
 
 import axios, { AxiosError } from 'axios';
 import { Network } from './wallet';
+import { Buffer } from 'buffer';
 
 
 

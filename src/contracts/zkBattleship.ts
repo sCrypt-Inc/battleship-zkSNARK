@@ -53,9 +53,9 @@ export class BattleShip extends SmartContract {
         this.computerHits = computerHits
         this.vk = vk
     }
-    
+
     @method()
-    static coordsToIndex(x: bigint, y: bigint) : bigint {
+    static coordsToIndex(x: bigint, y: bigint): bigint {
         return y * 10n + x
     }
 
@@ -69,29 +69,35 @@ export class BattleShip extends SmartContract {
         amount: bigint
     ) {
         let inputs: FixedArray<bigint, 4> = [
-            this.playerTurn ? this.computerBoardHash : this.playerBoardHash, 
-            x, y, 
+            this.playerTurn ? this.computerBoardHash : this.playerBoardHash,
+            x, y,
             hit ? 1n : 0n
         ]
 
         const verifier = new Verifier(this.vk)
         verifier.verifyProof(inputs, proof)
-        
+
         const pubKey = this.playerTurn ? this.player : this.computer
         assert(this.checkSig(sig, pubKey))
 
-        let coordIdx = Number(BattleShip.coordsToIndex(x, y))
-        if (this.playerTurn) {
-            assert(!this.playerHits[coordIdx])
-            this.playerHits[coordIdx] = true
-            if (hit) {
-                this.successfulPlayerHits++
-            }
-        } else {
-            assert(!this.computerHits[coordIdx])
-            this.computerHits[coordIdx] = true
-            if (hit) {
-                this.successfulComputerHits++
+        // TODO: This can be done way more efficiently using integers and bitwise ops
+        //       instead of arrays.
+        let coordIdx = BattleShip.coordsToIndex(x, y)
+        for (let i = 0; i < 100; i++) {
+            if (i == Number(coordIdx)) {
+                if (this.playerTurn) {
+                    assert(!this.playerHits[i])
+                    this.playerHits[i] = true
+                    if (hit) {
+                        this.successfulPlayerHits++
+                    }
+                } else {
+                    assert(!this.computerHits[i])
+                    this.computerHits[i] = true
+                    if (hit) {
+                        this.successfulComputerHits++
+                    }
+                }
             }
         }
 

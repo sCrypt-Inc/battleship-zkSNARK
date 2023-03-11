@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { web3 } from './web3';
+import desc from './contracts/zkBattleship.json'
 
 
 export function WelcomeScreen(props: any) {
@@ -7,22 +7,12 @@ export function WelcomeScreen(props: any) {
   const [loading, setLoading] = useState(true); // play or welcome
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
-    async function fetchContract() {
-      let desc = await web3.loadContractDesc(
-        "/zk-battleship/battleship.json"
-      );
-      return desc;
+
+    if (!props.desc) {
+      props.setDesc(desc)
+      setLoading(false)
     }
 
-    if(!props.desc) {
-      fetchContract().then(desc => {
-        props.setDesc(desc)
-        setLoading(false)
-      })
-      .catch(e => {
-        console.error('load desc error:', e)
-      })
-    }
   });
   return (
     <main>

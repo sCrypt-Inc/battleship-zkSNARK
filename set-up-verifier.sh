@@ -17,8 +17,19 @@ zokrates export-verifier-scrypt
 # mv output files to public folder
 cp out abi.json verification.key proving.key ../public/zk/
 
+cd verifier
 
-cd ..
+cp ../../src/contracts/zkBattleship.ts src/contracts/
+
+git init
+npm i
+npm run build && npm run apply-optim
+
+
+echo "const distModule = require('./dist/src/contracts/zkBattleship.js'); ( async () => { await distModule.BattleShip.compile(); })()"  > compile.js
+
+node compile.js
+
+cd ../../
 cp -f circuits/verifier/src/contracts/verifier.ts src/contracts/verifier.ts
-
-npx scrypt-cli compile
+cp -f circuits/verifier/scrypts/src/contracts/zkBattleship.json src/contracts/zkBattleship.json
