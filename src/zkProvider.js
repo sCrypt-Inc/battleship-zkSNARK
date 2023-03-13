@@ -2,12 +2,6 @@ import { initialize } from 'zokrates-js';
 
 export class ZKProvider {
   static instance;
-  
-  provider: any;
-  program: any;
-  abi: any;
-  proving_key: any;
-  verification_key: any;
 
   constructor(provider, program, abi, proving_key, verification_key) {
     this.provider = provider;

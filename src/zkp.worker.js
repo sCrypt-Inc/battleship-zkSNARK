@@ -7,6 +7,7 @@ const queue = new Queue({
   interval: 2000
 });
 
+
 onmessage = async function (event) {
 
   const { ctx, publicInputs, privateInputs } = event.data;
@@ -51,5 +52,3 @@ function runZKP(privateInputs, publicInputs) {
       }
     })
 }
-
-export default onmessage;

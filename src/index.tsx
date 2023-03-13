@@ -10,7 +10,7 @@ import reportWebVitals from './reportWebVitals';
 
 import './css/style.css';
 import { Network, SensiletWallet, web3} from './web3';
-//import { initPlayer } from './storage';
+import { initPlayer } from './storage';
 
 export const App = () => {
   const [appState, setAppState] = useState('welcome'); // play or welcome
@@ -59,6 +59,8 @@ export const App = () => {
   );
 };
 
+
+initPlayer()
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
