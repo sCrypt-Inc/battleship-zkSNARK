@@ -11,49 +11,58 @@ import reportWebVitals from './reportWebVitals';
 import './css/style.css';
 import { Network, SensiletWallet, web3} from './web3';
 import { initPlayer } from './storage';
+import { SensiletSigner, WhatsonchainProvider, bsv } from 'scrypt-ts';
 
 export const App = () => {
   const [appState, setAppState] = useState('welcome'); // play or welcome
-
   const [desc, setDesc] = useState(null); // play or welcome
+  const [signer, setSigner] = useState(null); 
 
   const startPlay = async () => {
+    
+    const provider = new WhatsonchainProvider(bsv.Networks.testnet);  // TODO: Maybe change to gorillapool because if big scripts
+    const signer = new SensiletSigner(provider);
+    
+    await signer.getConnectedTarget() as any;
 
-    const wallet =  new SensiletWallet();
-    web3.setWallet(wallet);
-    const isConnected = await web3.wallet.isConnected();
+    setAppState('play');
+    setSigner(signer)
 
-    if(isConnected) {
-      const n = await wallet.getNetwork();
+    //const wallet =  new SensiletWallet();
+    //web3.setWallet(wallet);
+    //const isConnected = await web3.wallet.isConnected();
 
-      if(n === Network.Mainnet) {
+    //if(isConnected) {
+    //  const n = await wallet.getNetwork();
 
-        alert("your sensilet wallet's network is mainnet, switch to testnet before playing.");
-        return;
-      }
+    //  if(n === Network.Mainnet) {
 
-      web3.setWallet(new SensiletWallet(n));
+    //    alert("your sensilet wallet's network is mainnet, switch to testnet before playing.");
+    //    return;
+    //  }
 
-      setAppState('play');
-    } else {
+    //  web3.setWallet(new SensiletWallet(n));
 
-      try {
-        const res = await web3.wallet.requestAccount("battleship", []);
-        if (res) {
-          setAppState('play');
-        }
-      } catch (error) {
-        console.error("requestAccount error", error);
-      }
+    //  setAppState('play');
+    //} else {
 
-    }
+    //  try {
+    //    const res = await web3.wallet.requestAccount("battleship", []);
+    //    if (res) {
+    //      setAppState('play');
+    //    }
+    //  } catch (error) {
+    //    console.error("requestAccount error", error);
+    //  }
+
+    //}
   };
 
   // Renders either Welcome Screen or Game
   return (
     <React.Fragment>
       <Header />
-      {appState === 'play' ? <Game desc={desc}/> : <WelcomeScreen startPlay={startPlay} desc={desc} setDesc={setDesc} />}
+      {appState === 'play' ? <Game desc={desc} signer={signer}/> : <WelcomeScreen startPlay={startPlay} desc={desc} setDesc={setDesc} />}
       <Footer />
     </React.Fragment>
   );

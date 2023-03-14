@@ -1,24 +1,20 @@
 /* global BigInt */
 import React, { useEffect, useRef, useState } from 'react';
-//import { bsv, buildContractClass, getPreimage, Int, PubKey, signTx } from 'scryptlib';
-import { bsv, BuildMethodCallTxOptions, BuildMethodCallTxResult, buildPublicKeyHashScript, findSig, FixedArray, hash160, MethodCallOptions, PubKey, SensiletSigner, Sig, SignatureResponse, Utils } from 'scrypt-ts'
-import { ContractUtxos, Player, PlayerPrivkey, PlayerPublicKey } from '../storage';
+import { bsv, BuildMethodCallTxOptions, BuildMethodCallTxResult, findSig, FixedArray, MethodCallOptions, PubKey, Sig, SignatureResponse } from 'scrypt-ts'
+import { ContractUtxos } from '../storage';
 import { web3 } from '../web3';
 import { Balance } from './Balance';
 import { GameView } from './GameView';
-
 import { buildMimc7 } from 'circomlibjs';
-import ZKPWorker from '../zkp.worker';
 import {
   coordsToIndex, generateEmptyLayout,
   generateRandomIndex,
   getNeighbors, indexToCoords, placeAllComputerShips, putEntityInLayout, SQUARE_STATE, updateSunkShips
 } from './layoutHelpers';
 
-import Queue from "queue-promise";
-
 import { BattleShip } from '../contracts/zkBattleship';
 import { VERIFYING_KEY_DATA, BN256, BN256Pairing, VerifyingKey } from '../contracts/verifier';
+import { runZKP } from '../zkProvider';
 
 const AVAILABLE_SHIPS = [
   {
@@ -48,7 +44,7 @@ const AVAILABLE_SHIPS = [
   },
 ];
 
-export const Game = ({ desc }) => {
+export const Game = ({ desc, signer }) => {
   const [gameState, setGameState] = useState('placement');
   const [winner, setWinner] = useState(null);
 
@@ -65,9 +61,6 @@ export const Game = ({ desc }) => {
   const [battleShipContract, setBattleShipContract] = useState(null); // contract
   const [deployTxid, setDeployTxid] = useState('');
   const [balance, setBalance] = useState(-1);
-  const [queue, setQueue] = useState(null);
-  const [zkpWorkerForPlayer, setZKPWorkerForPlayer] = useState(null);
-  //const [zkpWorkerForComputer, setZKPWorkerForComputer] = useState(null);
 
   const hp2CRef = useRef(hitsProofToComputer);
   useEffect(() => {
@@ -89,85 +82,56 @@ export const Game = ({ desc }) => {
     hbcRef.current = hitsByComputer
   }, [hitsByComputer]);
 
-  useEffect(() => {
-    //bsv.Transaction.FEE_PER_KB = 0.0001;
-
-    const queue = new Queue({
-      concurrent: 1,
-      interval: 20000
-    });
-
-    setQueue(queue)
-
-    return (() => {
-      queue.stop();
-    })
-  }, []);
-
-  const zkpWorkerMsgHandler = async (event) => {
-
-    const { ctx, isVerified, proof, output } = event.data;
-
+  const zkpHandler = async (ctx: any, isVerified: boolean, proof: any, output: any) => {
     if (isVerified) {
 
+      const isPlayerFired = ctx.role === 'player';
 
-      queue.enqueue(async () => {
+      const contractUtxo = ContractUtxos.getlast().utxo;
 
-        const isPlayerFired = ctx.role === 'player';
+      const Proof = battleShipContract.getTypeClassByType("Proof");
+      const G1Point = battleShipContract.getTypeClassByType("G1Point");
+      const G2Point = battleShipContract.getTypeClassByType("G2Point");
+      const FQ2 = battleShipContract.getTypeClassByType("FQ2");
 
-        const contractUtxo = ContractUtxos.getlast().utxo;
+      contractUtxo.script = battleShipContract.lockingScript.toHex();
 
-        const Proof = battleShipContract.getTypeClassByType("Proof");
-        const G1Point = battleShipContract.getTypeClassByType("G1Point");
-        const G2Point = battleShipContract.getTypeClassByType("G2Point");
-        const FQ2 = battleShipContract.getTypeClassByType("FQ2");
-
-        contractUtxo.script = battleShipContract.lockingScript.toHex();
-
-        await move(isPlayerFired, ctx.targetIdx, contractUtxo, output, new Proof({
-          a: new G1Point({
-            x: BigInt(proof.proof.a[0]),
-            y: BigInt(proof.proof.a[1]),
+      await move(isPlayerFired, ctx.targetIdx, contractUtxo, output, new Proof({
+        a: new G1Point({
+          x: BigInt(proof.proof.a[0]),
+          y: BigInt(proof.proof.a[1]),
+        }),
+        b: new G2Point({
+          x: new FQ2({
+            x: BigInt(proof.proof.b[0][0]),
+            y: BigInt(proof.proof.b[0][1]),
           }),
-          b: new G2Point({
-            x: new FQ2({
-              x: BigInt(proof.proof.b[0][0]),
-              y: BigInt(proof.proof.b[0][1]),
-            }),
-            y: new FQ2({
-              x: BigInt(proof.proof.b[1][0]),
-              y: BigInt(proof.proof.b[1][1]),
-            })
-          }),
-          c: new G1Point({
-            x: BigInt(proof.proof.c[0]),
-            y: BigInt(proof.proof.c[1]),
+          y: new FQ2({
+            x: BigInt(proof.proof.b[1][0]),
+            y: BigInt(proof.proof.b[1][1]),
           })
-        }), ctx.newStates)
-          .then(() => {
+        }),
+        c: new G1Point({
+          x: BigInt(proof.proof.c[0]),
+          y: BigInt(proof.proof.c[1]),
+        })
+      }), ctx.newStates)
+        .then(() => {
 
-            if (isPlayerFired) {
-              setHitsProofToPlayer(new Map(hp2PRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
-            } else {
-              setHitsProofToComputer(new Map(hp2CRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
-            }
-          })
-          .catch(e => {
-            console.error("call contract error:", e);
-            alert("call contract error:" + e.message);
-          })
-      })
+          if (isPlayerFired) {
+            setHitsProofToPlayer(new Map(hp2PRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
+          } else {
+            setHitsProofToComputer(new Map(hp2CRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
+          }
+        })
+        .catch(e => {
+          console.error("call contract error:", e);
+          alert("call contract error:" + e.message);
+        })
     }
   }
 
   useEffect(() => {
-    const zkWorkers = new ZKPWorker()
-    zkWorkers.addEventListener('message', zkpWorkerMsgHandler);
-    setZKPWorkerForPlayer(zkWorkers);
-
-    return (() => {
-      zkWorkers.terminate();
-    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battleShipContract]);
 
@@ -188,6 +152,9 @@ export const Game = ({ desc }) => {
 
     console.log('call move ...', 'index=', index, 'hit=', hit, 'newStates=', newStates)
 
+    const pubKeyPlayer = signer.getDefaultPubKey()
+    const pubKeyComputer = pubKeyPlayer
+
     const currentInstance = battleShipContract;
     const nextInstance = currentInstance.next()
 
@@ -204,10 +171,11 @@ export const Game = ({ desc }) => {
 
       const changeAddress = await currentInstance.signer.getDefaultAddress();
 
+
       if (nextInstance.successfulPlayerHits == 17n) {
 
         unsignedTx.addOutput(new bsv.Transaction.Output({
-          script: bsv.Script.buildPublicKeyHashOut(PlayerPrivkey.get(Player.Computer)),
+          script: bsv.Script.buildPublicKeyHashOut(pubKeyPlayer),
           satoshis: initBalance
         }))
           .change(changeAddress)
@@ -223,7 +191,7 @@ export const Game = ({ desc }) => {
       } else if (newStates.successfulComputerHits == 17n) {
 
         unsignedTx.addOutput(new bsv.Transaction.Output({
-          script: bsv.Script.buildPublicKeyHashOut(PlayerPrivkey.get(Player.You)),
+          script: bsv.Script.buildPublicKeyHashOut(pubKeyComputer),
           satoshis: initBalance
         }))
           .change(changeAddress)
@@ -259,8 +227,7 @@ export const Game = ({ desc }) => {
 
 
     const currentTurn = !newStates.yourTurn;
-    const privateKey = bsv.PrivateKey.fromWIF(currentTurn ? PlayerPrivkey.get(Player.You) : PlayerPrivkey.get(Player.Computer));
-    const pubKey = privateKey.toPublicKey()
+    const pubKey = currentTurn ? pubKeyPlayer : pubKeyComputer
     const position = indexToCoords(index);
 
     const { tx: callTx } = await currentInstance.methods.move(
@@ -337,22 +304,26 @@ export const Game = ({ desc }) => {
 
     const falseArr: FixedArray<boolean, 100> = new Array(100).fill(false) as FixedArray<boolean, 100>
 
+    // Because in this implementation we're playing against our local computer we just use the same
+    // key (of our Sensilet wallet) for both players for the sake of simplicity.
+    const pubKeyPlayer = (await signer.getDefaultPubKey()).toString()
+    const pubKeyComputer = pubKeyPlayer
+
     const instance = new BattleShip(
-      PubKey(PlayerPublicKey.get(Player.You)),
-      PubKey(PlayerPublicKey.get(Player.Computer)),
+      PubKey(pubKeyPlayer),
+      PubKey(pubKeyComputer),
       BigInt(playerHash),
       BigInt(computerHash),
       falseArr, falseArr,
       vk);
 
+    instance.connect(signer)
+
     setBattleShipContract(instance);
 
     try {
-
       ContractUtxos.clear();
-
-      const rawTx = await web3.deploy(instance, 10000);
-
+      const rawTx = await instance.deploy(10000);
       ContractUtxos.add(rawTx, 0, -1);
 
       const txid = ContractUtxos.getdeploy().utxo.txId
@@ -360,9 +331,9 @@ export const Game = ({ desc }) => {
       setDeployTxid(txid)
 
       setTimeout(async () => {
-        web3.wallet.getbalance().then(balance => {
-          console.log('update balance:', balance)
-          setBalance(balance)
+        signer.getBalance().then(balance => {
+          console.log('update balance:', balance.total)
+          setBalance(balance.total)
         })
       }, 10000);
     } catch (error) {
@@ -561,19 +532,14 @@ export const Game = ({ desc }) => {
       setHitsProofToComputer(new Map(hitsProofToComputer.set(targetIdx, { status: 'pending' })));
     }
 
-    const zkpWorker = zkpWorkerForPlayer;
-
-    // send message to worker
-    zkpWorker.postMessage({
-      // message id
-      ctx: {
-        role,
-        targetIdx,
-        newStates
-      },
-      privateInputs,
-      publicInputs
-    });
+    const ctx = {
+      role,
+      targetIdx,
+      newStates
+    }
+    runZKP(privateInputs, publicInputs).then((res) => {
+      zkpHandler(ctx, res.isVerified, res.proof, res.output)
+    })
   }
 
   // *** Zero Knowledge Proof
@@ -691,7 +657,7 @@ export const Game = ({ desc }) => {
         deployTxid={deployTxid}
         handleFire={handleFire}
       />
-      <Balance balance={balance}></Balance>
+      <Balance balance={balance} signer={signer}></Balance>
     </React.Fragment>
   );
 };

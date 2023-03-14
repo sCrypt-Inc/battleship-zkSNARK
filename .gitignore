@@ -25,6 +25,7 @@ yarn-error.log*
 /artifacts
 scrypt.index.json
 
+/src/contracts/zkBattleship.json
 
 /circuits/*.key
 /circuits/*.json
