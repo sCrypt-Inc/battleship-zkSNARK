@@ -1,18 +1,18 @@
-import React from 'react';
 import { Whatsonchain } from '../web3';
 
-export const PlayerTips = ({
-  gameState,
-  hitsbyPlayer,
-  hitsByComputer,
-  startAgain,
-  winner,
-  deployTxid,
-}) => {
-  let numberOfHits = hitsbyPlayer.length;
-  let numberOfSuccessfulHits = hitsbyPlayer.filter((hit) => hit.type === 'hit').length;
+export function PlayerTips(props: any) {
+
+  let gameState = props.gameState
+  let hitsByPlayer = props.hitsbyPlayer
+  let hitsByComputer = props.hitsByComputer
+  let startAgain = props.startAgain
+  let winner = props.winner
+  let deployTxid = props.deployTxid
+
+  let numberOfHits = hitsByPlayer.length;
+  let numberOfSuccessfulHits = hitsByPlayer.filter((hit: any) => hit.type === 'hit').length;
   let accuracyScore = Math.round(100 * (numberOfSuccessfulHits / numberOfHits));
-  let succesfulComputerHits = hitsByComputer.filter((hit) => hit.type === 'hit').length;
+  let succesfulComputerHits = hitsByComputer.filter((hit: any) => hit.type === 'hit').length;
 
   let gameOverPanel = (
     <div>

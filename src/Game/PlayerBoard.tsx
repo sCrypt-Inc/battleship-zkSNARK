@@ -1,4 +1,3 @@
-import React from 'react';
 import { ContractUtxos } from '../storage';
 import { Whatsonchain } from '../web3';
 import {
@@ -11,32 +10,32 @@ import {
   canBePlaced,
 } from './layoutHelpers';
 
-export const PlayerBoard = ({
-  currentlyPlacing,
-  setCurrentlyPlacing,
-  rotateShip,
-  placeShip,
-  placedShips,
-  hitsByComputer,
-  hitsProofToComputer,
-  playSound,
-}) => {
+export function PlayerBoard(props: any) {
+  let currentlyPlacing = props.currentlyPlacing
+  let setCurrentlyPlacing = props.setCurrentlyPlacing
+  let rotateShip = props.rotateShip
+  let placeShip = props.placeShip
+  let placedShips = props.placedShips
+  let hitsByComputer = props.hitsByComputer
+  let hitsProofToComputer = props.hitsProofToComputer
+  let playSound = props.playSound
+
   // Player ships on empty layout
   let layout = placedShips.reduce(
-    (prevLayout, currentShip) =>
+    (prevLayout: any, currentShip: any) =>
       putEntityInLayout(prevLayout, currentShip, SQUARE_STATE.ship),
     generateEmptyLayout()
   );
 
   // Hits by computer
   layout = hitsByComputer.reduce(
-    (prevLayout, currentHit) =>
+    (prevLayout: any, currentHit: any) =>
       putEntityInLayout(prevLayout, currentHit, currentHit.type),
     layout
   );
 
   layout = placedShips.reduce(
-    (prevLayout, currentShip) =>
+    (prevLayout: any, currentShip: any) =>
       currentShip.sunk
         ? putEntityInLayout(prevLayout, currentShip, SQUARE_STATE.ship_sunk)
         : prevLayout,
@@ -61,7 +60,7 @@ export const PlayerBoard = ({
 
 
 
-  let squares = layout.map((square, index) => {
+  let squares = layout.map((square: any, index: any) => {
     const hitProofStatus = hitsProofToComputer.get(index);
     return (
       <div
@@ -70,10 +69,13 @@ export const PlayerBoard = ({
           if (canPlaceCurrentShip) {
             playSound('click');
             placeShip(currentlyPlacing);
-          } else if(hitProofStatus && hitProofStatus.status === 'verified') {
+          } else if (hitProofStatus && hitProofStatus.status === 'verified') {
             const utxo = ContractUtxos.getComputerUtxoByIndex(index);
-            if(utxo) {
-              window.open(Whatsonchain.getTxUri(utxo.utxo.txId), '_blank').focus();
+            if (utxo) {
+              if (utxo.utxo) {
+                let win = window.open(Whatsonchain.getTxUri(utxo.utxo.txId), '_blank')
+                if (win) { win.focus() };
+              }
             } else {
               console.error('utxo not found for index: ', index)
             }

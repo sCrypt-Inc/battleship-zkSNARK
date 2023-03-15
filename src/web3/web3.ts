@@ -1,4 +1,4 @@
-import { bsv, AbstractContract} from 'scryptlib';
+import { bsv, SmartContract} from 'scrypt-ts';
 import { UTXO, wallet, SignType } from './wallet';
 import axios from 'axios';
 
@@ -38,16 +38,16 @@ export class web3 {
   }
 
 
-  static async deploy(contract: AbstractContract, amountInContract: number): Promise<string> {
+  static async deploy(contract: SmartContract, amountInContract: number): Promise<string> {
     const wallet = web3.wallet
 
     const changeAddress = await web3.wallet.getRawChangeAddress();
 
     return wallet.listUnspent(amountInContract, {
       purpose: 'listUnspent'
-    }).then(async (utxos: UTXO[]) => {
+    }).then((utxos: UTXO[]) => {
       if(utxos.length === 0) {
-        throw new Error('Insufficient balance!')
+        throw new Error('no utxo available')
       }
       const tx = new bsv.Transaction();
       tx.from([utxos[0]])
@@ -57,12 +57,9 @@ export class web3 {
         }))
         .change(changeAddress);
 
-        const unlockScript = await wallet.signRawTransaction(tx.toString(), utxos[0].script, utxos[0].satoshis, 0, SignType.ALL);
-
-        tx.inputs[0].setScript(bsv.Script.fromHex(unlockScript));
-
-        return tx.toString();
+      return wallet.signRawTransaction(tx.toString(), utxos[0].script, utxos[0].satoshis, 0, SignType.ALL);
     }).then(async (rawTx: string) => {
+      await web3.sendRawTx(rawTx);
       return rawTx;
     })
   }
@@ -71,18 +68,18 @@ export class web3 {
     cbBuildTx: (tx: bsv.Transaction) => Promise<void>,
   ): Promise<string> {
     const tx = new bsv.Transaction();
-
-    const prevLockingScript = bsv.Script.fromHex(contractUtxo.script);
     tx.addInput(new bsv.Transaction.Input({
       prevTxId: contractUtxo.txId,
       outputIndex: contractUtxo.outputIndex,
-      script: new bsv.Script(), // placeholder
+      script: new bsv.Script(''), // placeholder
       output: new bsv.Transaction.Output({
-        script: prevLockingScript,
+        script: new bsv.Script(contractUtxo.script),
         satoshis: contractUtxo.satoshis,
       })
     }));
+
     await cbBuildTx(tx);
+
     const rawTx = tx.toString();
     await web3.sendRawTx(rawTx);
     return rawTx;

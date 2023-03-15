@@ -1,21 +1,21 @@
 /* global BigInt */
 import React, { useEffect, useRef, useState } from 'react';
-import { bsv, buildContractClass, getPreimage, Int, PubKey, signTx } from 'scryptlib';
-import { ContractUtxos, Player, PlayerPKH, PlayerPrivkey, PlayerPublicKey } from '../storage';
+import { bsv, BuildMethodCallTxOptions, BuildMethodCallTxResult, findSig, FixedArray, MethodCallOptions, PubKey, Sig, SignatureResponse } from 'scrypt-ts'
+import { ContractUtxos } from '../storage';
 import { web3 } from '../web3';
-import Balance from './balance';
+import { Balance } from './Balance';
 import { GameView } from './GameView';
 import { buildMimc7 } from 'circomlibjs';
-import { useModal } from 'react-hooks-use-modal';
-
 import {
   coordsToIndex, generateEmptyLayout,
   generateRandomIndex,
   getNeighbors, indexToCoords, placeAllComputerShips, putEntityInLayout, SQUARE_STATE, updateSunkShips
 } from './layoutHelpers';
 
+import { BattleShip } from '../contracts/zkBattleship';
+import { VERIFYING_KEY_DATA, BN256, BN256Pairing, VerifyingKey } from '../contracts/verifier';
+import { runZKP } from '../zkProvider';
 import Queue from "queue-promise";
-import { CircomProvider } from '../circomProvider';
 
 const AVAILABLE_SHIPS = [
   {
@@ -45,30 +45,7 @@ const AVAILABLE_SHIPS = [
   },
 ];
 
-
-function runCircom(privateInputs, publicInputs) {
-  return CircomProvider
-    .init()
-    .then(async () => {
-      return CircomProvider.generateProof({
-        "boardHash": publicInputs[0],
-        "guess": publicInputs.slice(1),
-        "ships": privateInputs
-      });
-    })
-    .then(async ({ proof, publicSignals, isHit }) => {
-      const isVerified = await CircomProvider.verify({ proof, publicSignals });
-      return { isVerified, proof, isHit };
-    })
-    .catch(e => {
-      console.error('runCircom error:', e)
-      return {
-        isVerified: false
-      }
-    })
-}
-
-export const Game = ({ desc }) => {
+export const Game = ({ artifact, signer }) => {
   const [gameState, setGameState] = useState('placement');
   const [winner, setWinner] = useState(null);
 
@@ -86,67 +63,6 @@ export const Game = ({ desc }) => {
   const [deployTxid, setDeployTxid] = useState('');
   const [balance, setBalance] = useState(-1);
   const [queue, setQueue] = useState(null);
-  const [description, setDescription] = useState('Please use the wallet to sign the transaction.');
-
-  
-
-  const [Modal, open, close, isOpen] = useModal('root', {
-    preventScroll: true,
-    focusTrapOptions: {
-      clickOutsideDeactivates: false,
-    },
-    components: {
-      Modal: ({ title, description, children }) => {
-        return (
-          <div
-            style={{
-              padding: '60px 100px',
-              backgroundColor: '#fff',
-              borderRadius: '10px',
-            }}
-          >
-            {title && <h1>{title}</h1>}
-            <br></br>
-            {description && <p>{description}</p>}
-            {children}
-          </div>
-        );
-      },
-      Overlay: () => {
-        return (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            }}
-          />
-        );
-      },
-      Wrapper: ({ children }) => {
-        return (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              zIndex: 1000,
-            }}
-          >
-            {children}
-          </div>
-        );
-      },
-    },
-  });
 
   const hp2CRef = useRef(hitsProofToComputer);
   useEffect(() => {
@@ -182,6 +98,10 @@ export const Game = ({ desc }) => {
   }, []);
 
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [battleShipContract]);
+
 
   // *** PLAYER ***
   const selectShip = (shipName) => {
@@ -197,102 +117,108 @@ export const Game = ({ desc }) => {
 
   const move = async (isPlayerFired, index, contractUtxo, hit, proof, newStates) => {
 
-    console.log('call move ...', 'index=', index, newStates, contractUtxo)
+    console.log('call move ...', 'index=', index, 'hit=', hit, 'newStates=', newStates)
 
+    const pubKeyPlayer = await signer.getDefaultPubKey()
+    const pubKeyComputer = pubKeyPlayer
 
-    console.time('t0')
-    return web3.call(contractUtxo, async (tx) => {
+    const currentInstance = battleShipContract;
+    const nextInstance = currentInstance.next()
 
-      if (newStates.successfulYourHits === 17) {
-        const amount = contractUtxo.satoshis - tx.getEstimateFee();
+    const initBalance = currentInstance.from?.tx.outputs[currentInstance.from?.outputIndex].satoshis as number;
+    // Update contract state:
+    Object.assign(nextInstance, newStates); // TODO (miha)
 
-        if (amount < 1) {
-          alert('Not enough funds.');
-          throw new Error('Not enough funds.')
-        }
+    BattleShip.bindTxBuilder('move', async (options: BuildMethodCallTxOptions<BattleShip>, sig: Sig) => {
 
-        tx.setOutput(0, (tx) => {
-          return new bsv.Transaction.Output({
-            script: bsv.Script.buildPublicKeyHashOut(PlayerPKH.get(Player.Computer)),
-            satoshis: amount,
-          })
-        })
+      const unsignedTx: bsv.Transaction = new bsv.Transaction()
+        .addInputFromPrevTx(currentInstance.from?.tx as bsv.Transaction, currentInstance.from?.outputIndex)
+        .from(options.utxos);
 
-      } else if (newStates.successfulComputerHits === 17) {
-        tx.setOutput(0, (tx) => {
-          const amount = contractUtxo.satoshis - tx.getEstimateFee();
-          if (amount < 1) {
-            alert('Not enough funds.');
-            throw new Error('Not enough funds.')
-          }
+      const changeAddress = await currentInstance.signer.getDefaultAddress();
 
-          return new bsv.Transaction.Output({
-            script: bsv.Script.buildPublicKeyHashOut(PlayerPKH.get(Player.You)),
-            satoshis: amount,
-          })
-        })
+      if (nextInstance.successfulPlayerHits == 17n) {
+
+        unsignedTx.addOutput(new bsv.Transaction.Output({
+          script: bsv.Script.buildPublicKeyHashOut(pubKeyPlayer),
+          satoshis: initBalance
+        }))
+          .change(changeAddress)
+
+        return Promise.resolve({
+          unsignedTx,
+          atInputIndex: 0,
+          nexts: [
+
+          ]
+        }) as Promise<BuildMethodCallTxResult<BattleShip>>
+
+      } else if (newStates.successfulComputerHits == 17n) {
+
+        unsignedTx.addOutput(new bsv.Transaction.Output({
+          script: bsv.Script.buildPublicKeyHashOut(pubKeyComputer),
+          satoshis: initBalance
+        }))
+          .change(changeAddress)
+
+        return Promise.resolve({
+          unsignedTx,
+          atInputIndex: 0,
+          nexts: [
+
+          ]
+        }) as Promise<BuildMethodCallTxResult<BattleShip>>
 
       } else {
-        tx.setOutput(0, (tx) => {
-          const amount = contractUtxo.satoshis - tx.getEstimateFee();
+        unsignedTx.addOutput(new bsv.Transaction.Output({
+          script: nextInstance.lockingScript,
+          satoshis: initBalance,
+        }))
+          .change(changeAddress)
 
-          if (amount < 1) {
-            alert('Not enough funds.');
-            throw new Error('Not enough funds.')
-          }
-
-          const newLockingScript = battleShipContract.getNewStateScript(newStates);
-
-          return new bsv.Transaction.Output({
-            script: newLockingScript,
-            satoshis: amount,
-          })
-        })
+        return Promise.resolve({
+          unsignedTx,
+          atInputIndex: 0,
+          nexts: [
+            {
+              instance: nextInstance,
+              atOutputIndex: 0,
+              balance: initBalance
+            }
+          ]
+        }) as Promise<BuildMethodCallTxResult<BattleShip>>
       }
-
-
-      tx.setInputScript(0, (tx, output) => {
-        const preimage = getPreimage(tx, output.script, output.satoshis)
-        const currentTurn = !newStates.yourTurn;
-        const privateKey = new bsv.PrivateKey.fromWIF(currentTurn ? PlayerPrivkey.get(Player.You) : PlayerPrivkey.get(Player.Computer));
-        const sig = signTx(tx, privateKey, output.script, output.satoshis)
-        const position = indexToCoords(index);
-
-        let amount = contractUtxo.satoshis - tx.getEstimateFee();
-
-        if (amount < 1) {
-          alert('Not enough funds.');
-          throw new Error('Not enough funds.')
-        }
-
-        return battleShipContract.move(sig, position.x, position.y, hit, proof, amount, preimage).toScript();
-      })
-        .seal();
-
-
-    }).then(async rawTx => {
-      console.timeEnd('t0')
-      ContractUtxos.add(rawTx, isPlayerFired, index);
-
-      battleShipContract.successfulYourHits = newStates.successfulYourHits;
-      battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
-      battleShipContract.yourTurn = newStates.yourTurn;
-      battleShipContract.yourHits = newStates.yourHits;
-      battleShipContract.computerHits = newStates.computerHits;
-
-      
-
-      setTimeout(async () => {
-        web3.wallet.getbalance().then(balance => {
-          console.log('update balance:', balance)
-          setBalance(balance)
-        })
-      }, 5000);
-
     })
-      .catch(e => {
-        console.error('call contract fail', e)
+
+
+    const currentTurn = !newStates.yourTurn;
+    const pubKey = currentTurn ? pubKeyPlayer : pubKeyComputer
+    const position = indexToCoords(index);
+
+    const { tx: callTx } = await currentInstance.methods.move(
+      (sigResponses: SignatureResponse[]) => {
+        return findSig(sigResponses, pubKey)
+      },
+      position.x, position.y, hit, proof, initBalance,
+      {
+        pubKeyOrAddrToSign: pubKey,
+      } as MethodCallOptions<BattleShip>
+    )
+
+    ContractUtxos.add(callTx, isPlayerFired, index);
+
+    battleShipContract.successfulYourHits = newStates.successfulYourHits;
+    battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
+    battleShipContract.yourTurn = newStates.yourTurn;
+    battleShipContract.yourHits = newStates.yourHits;
+    battleShipContract.computerHits = newStates.computerHits;
+
+    setTimeout(async () => {
+      web3.wallet.getbalance().then(balance => {
+        console.log('update balance:', balance)
+        setBalance(balance)
       })
+    }, 5000);
 
   }
 
@@ -323,33 +249,46 @@ export const Game = ({ desc }) => {
   };
 
   const startTurn = async () => {
+    BattleShip.loadArtifact(artifact)
 
     const computerShips_ = generateComputerShips();
-    const BattleShip = buildContractClass(desc);
-
     const playerHash = await shipHash(placedShips);
     const computerHash = await shipHash(computerShips_);
 
-    const contract = new BattleShip(new PubKey(PlayerPublicKey.get(Player.You)),
-      new PubKey(PlayerPublicKey.get(Player.Computer)),
-      new Int(playerHash), new Int(computerHash), 0, 0, true,new Array(100).fill(false),new Array(100).fill(false) );
+    // Construct VK
+    let alpha = BN256.createCurvePoint(VERIFYING_KEY_DATA.alpha)
+    let beta = BN256.createTwistPoint(VERIFYING_KEY_DATA.beta)
+    let millerb1a1 = BN256Pairing.miller(beta, alpha)
 
-    setBattleShipContract(contract);
+    let vk: VerifyingKey = {
+      millerb1a1: millerb1a1,
+      gamma: VERIFYING_KEY_DATA.gamma,
+      delta: VERIFYING_KEY_DATA.delta,
+      gammaAbc: VERIFYING_KEY_DATA.gammaAbc
+    }
+
+    const falseArr: FixedArray<boolean, 100> = new Array(100).fill(false) as FixedArray<boolean, 100>
+
+    // Because in this implementation we're playing against our local computer we just use the same
+    // key (of our Sensilet wallet) for both players for the sake of simplicity.
+    const pubKeyPlayer = await signer.getDefaultPubKey()
+    const pubKeyComputer = pubKeyPlayer
+
+    const instance = new BattleShip(
+      PubKey(await pubKeyPlayer.toString()),
+      PubKey(await pubKeyComputer.toString()),
+      BigInt(playerHash),
+      BigInt(computerHash),
+      falseArr, falseArr,
+      vk);
+
+    instance.connect(signer)
+
+    setBattleShipContract(instance);
 
     try {
-
       ContractUtxos.clear();
-
-      open()
-
-      const rawTx = await web3.deploy(contract, 20000);
-
-      setDescription("Broadcasting transaction...")
-      open()
-      await web3.sendRawTx(rawTx)
-
-      close()
-
+      const rawTx = await instance.deploy(10000);
       ContractUtxos.add(rawTx, 0, -1);
 
       const txid = ContractUtxos.getdeploy().utxo.txId
@@ -357,24 +296,20 @@ export const Game = ({ desc }) => {
       setDeployTxid(txid)
 
       setTimeout(async () => {
-        web3.wallet.getbalance().then(balance => {
-          console.log('update balance:', balance)
-          setBalance(balance)
+        signer.getBalance().then(balance => {
+          console.log('update balance:', balance.total)
+          setBalance(balance.total)
         })
       }, 10000);
     } catch (error) {
-      console.error("Deploying contract failed", error);
+      console.error("deploy contract fails", error);
       setBattleShipContract(null);
-      setDescription("Deploying contract failed:" + error.message)
-      open()
+      alert("deploy contract error:" + error.message);
       return;
     }
 
-
     setGameState('player-turn');
-
     setPlacedShipsHash(playerHash);
-
     setComputerShipsHash(computerHash);
   };
 
@@ -430,8 +365,8 @@ export const Game = ({ desc }) => {
       let successfulComputerHits = computerHits.filter((hit) => hit.type === 'hit')
         .length;
 
-      const yourHits_ =  new Array(100).fill(false);
-      const computerHits_ =  new Array(100).fill(false);
+      const yourHits_ = new Array(100).fill(false);
+      const computerHits_ = new Array(100).fill(false);
 
       hbpRef.current.map((hit) => coordsToIndex(hit.position)).forEach(v => {
         yourHits_[v] = true
@@ -554,7 +489,7 @@ export const Game = ({ desc }) => {
     const isPlayerFired = role === 'player';
     const privateInputs = toPrivateInputs(isPlayerFired ? computerShips : placedShips);
     const position = indexToCoords(targetIdx);
-    const publicInputs = [isPlayerFired ? computerShipsHash : placedShipsHash, position.x, position.y];
+    const publicInputs = [isPlayerFired ? computerShipsHash : placedShipsHash, position.x.toString(), position.y.toString()];
 
     if (isPlayerFired) {
       setHitsProofToPlayer(new Map(hitsProofToPlayer.set(targetIdx, { status: 'pending' })));
@@ -562,68 +497,64 @@ export const Game = ({ desc }) => {
       setHitsProofToComputer(new Map(hitsProofToComputer.set(targetIdx, { status: 'pending' })));
     }
 
+    const ctx = {
+      role,
+      targetIdx,
+      newStates
+    }
 
     queue.enqueue(async () => {
-      await runCircom(privateInputs, publicInputs)
-      .then(async ({isVerified, proof, isHit }) => {
+      await runZKP(privateInputs, publicInputs).then(async ({ isVerified, proof, isHit }: any) => {
         console.log("isVerified", isVerified)
         console.log("isHit", isHit)
         console.log(proof)
-        
-        const isPlayerFired = role === 'player';
+
+        const isPlayerFired = ctx.role === 'player';
 
         const contractUtxo = ContractUtxos.getlast().utxo;
 
-        const Proof = battleShipContract.getTypeClassByType("Proof");
-        const G1Point = battleShipContract.getTypeClassByType("G1Point");
-        const G2Point = battleShipContract.getTypeClassByType("G2Point");
-        const FQ2 = battleShipContract.getTypeClassByType("FQ2");
-
         contractUtxo.script = battleShipContract.lockingScript.toHex();
 
-        await move(isPlayerFired, targetIdx, contractUtxo, isHit, new Proof({
-          a: new G1Point({
-            x: new Int(proof.pi_a[0]),
-            y: new Int(proof.pi_a[1]),
-          }),
-          b: new G2Point({
-            x: new FQ2({
-              x: new Int(proof.pi_b[0][0]),
-              y: new Int(proof.pi_b[0][1]),
-            }),
-            y: new FQ2({
-              x: new Int(proof.pi_b[1][0]),
-              y: new Int(proof.pi_b[1][1]),
-            })
-          }),
-          c: new G1Point({
-            x: new Int(proof.pi_c[0]),
-            y: new Int(proof.pi_c[1]),
-          })
-        }), newStates)
+        await move(isPlayerFired, ctx.targetIdx, contractUtxo, isHit, {
+          a: {
+            x: BigInt(proof.pi_a[0]),
+            y: BigInt(proof.pi_a[1]),
+          },
+          b: {
+            x: {
+              x: BigInt(proof.pi_b[0][0]),
+              y: BigInt(proof.pi_b[0][1]),
+            },
+            y: {
+              x: BigInt(proof.pi_b[1][0]),
+              y: BigInt(proof.pi_b[1][1]),
+            }
+          },
+          c: {
+            x: BigInt(proof.pi_c[0]),
+            y: BigInt(proof.pi_c[1]),
+          },
+        }, ctx.newStates)
           .then(() => {
 
             if (isPlayerFired) {
-              setHitsProofToPlayer(new Map(hp2PRef.current.set(targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
+              setHitsProofToPlayer(new Map(hp2PRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
             } else {
-              setHitsProofToComputer(new Map(hp2CRef.current.set(targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
+              setHitsProofToComputer(new Map(hp2CRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
             }
           })
           .catch(e => {
             console.error("call contract error:", e);
             alert("call contract error:" + e.message);
           })
-      });
-    });
-
-    
-
+      })
+    })
   }
 
   // *** Zero Knowledge Proof
 
   const sortShipsForZK = (ships) => {
-    const SORTED_ZK_SHIP_NAMES = ['carrier', 'battleship', 'cruiser', 'submarine', 'destoryer'];
+    const SORTED_ZK_SHIP_NAMES = ['carrier', 'battleship', 'cruiser', 'submarine', 'destroyer'];
     return ships.sort((a, b) => SORTED_ZK_SHIP_NAMES.indexOf(a) - SORTED_ZK_SHIP_NAMES.indexOf(b))
   }
 
@@ -646,7 +577,6 @@ export const Game = ({ desc }) => {
   }
 
   const toPrivateInputs = (ships) => {
-
     return ships.map(ship =>
       [
         ship.position.x,
@@ -656,6 +586,7 @@ export const Game = ({ desc }) => {
     )
   }
 
+  // *** End ZKP **
 
   const sunkSoundRef = useRef(null);
   const clickSoundRef = useRef(null);
@@ -731,12 +662,7 @@ export const Game = ({ desc }) => {
         deployTxid={deployTxid}
         handleFire={handleFire}
       />
-      <Balance balance={balance}></Balance>
-      <Modal title="Deploying" description={description}>
-        <div>
-          <button onClick={close}>CLOSE</button>
-        </div>
-      </Modal>
+      <Balance balance={balance} signer={signer}></Balance>
     </React.Fragment>
   );
 };

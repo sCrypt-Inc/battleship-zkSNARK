@@ -1,6 +1,7 @@
 
 import axios, { AxiosError } from 'axios';
 import { Network } from './wallet';
+import { Buffer } from 'buffer';
 
 
 
@@ -31,8 +32,7 @@ export class Gorillapool {
                 data: Buffer.from(txhex, 'hex'),
                 headers: {
                     'Accept': 'text/plain',
-                    'Content-Type': 'application/octet-stream',
-                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIyMDIzLTA5LTExVDEyOjI4OjQ0LjA5OTU3MjE5OFoiLCJuYW1lIjoibmFubyJ9.hPTPj8ZClo7n9f_9ZJVWonvrNBlWj1igv88uIYUEHTU'
+                    'Content-Type': 'application/octet-stream'
                 },
                 timeout: time,
                 maxBodyLength: Infinity
@@ -58,31 +58,14 @@ export class Gorillapool {
                 message = e.message;
             }
 
-            throw new Error('sendRawTransaction failed: ' + message)
+            throw new Error('sendRawTransaction error: ' + message)
         }
     }
 
     static async listUnspent(address: string): Promise<any> {
-
-        try {
-
-            const res = await axios.get(`${Gorillapool.API_PREFIX}/address/${address}/unspent`, {
-                timeout: 30000
-            });
-            return res;
-        } catch (e) {
-            let message = 'Unknown Error'
-
-            if(axios.isAxiosError(e)) {
-                const ae = e as AxiosError;
-                message = JSON.stringify(ae.response?.data || {});
-            } else if(e instanceof Error) {
-                message = e.message;
-            }
-
-            throw new Error('listUnspent failed: ' + message)
-        }
-        
+        return axios.get(`${Gorillapool.API_PREFIX}/address/${address}/unspent`, {
+            timeout: 30000
+        });
     }
 
     static getTxUri(txid: string): string {

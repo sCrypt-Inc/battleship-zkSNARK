@@ -23,6 +23,7 @@
 /circuits/**/*.zkey
 /circuits/**/*.r1cs
 /circuits/battleship_js
+/circuits/verifier
 
 # misc
 .DS_Store
@@ -38,3 +39,7 @@ yarn-error.log*
 
 public/*.json
 public/zk/
+src/contracts/zkBattleship.json
+
+scrypt.index.json
+/artifacts

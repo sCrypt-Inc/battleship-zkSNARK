@@ -1,17 +1,17 @@
 import React from 'react';
 import { ReplicaBox } from './ReplicaBox';
 
-export const PlayerFleet = ({
-  availableShips,
-  selectShip,
-  currentlyPlacing,
-  startTurn,
-  startAgain,
-}) => {
-  let shipsLeft = availableShips.map((ship) => ship.name);
+export function PlayerFleet(props: any) {
+  let availableShips = props.availableShips
+  let selectShip = props.selectShip
+  let currentlyPlacing = props.currentlyPlacing
+  let startTurn = props.startTurn
+  let startAgain = props.startAgain
+
+  let shipsLeft = availableShips.map((ship: { name: any; }) => ship.name);
 
   // For every ship still available, return a Replica Box with the ship's name and as many squares as its length
-  let shipReplicaBoxes = shipsLeft.map((shipName) => (
+  let shipReplicaBoxes = shipsLeft.map((shipName: React.Key | null | undefined) => (
     <ReplicaBox
       selectShip={selectShip}
       key={shipName}

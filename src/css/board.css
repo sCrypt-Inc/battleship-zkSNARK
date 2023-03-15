@@ -92,7 +92,7 @@
 }
 
 .board .verified {
-  background-image: url('/zk-battleship/verified.png');
+  background-image: url('../../public/verified.png');
   background-size: 80%;
   background-repeat: no-repeat;
   background-position: center;
@@ -100,7 +100,7 @@
 }
 
 .board .pending {
-  background-image: url('/zk-battleship/loading.gif');
+  background-image: url('../../public/loading.gif');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;

@@ -1,4 +1,4 @@
-import { toHex, bsv } from "scryptlib";
+import { toHex, bsv } from "scrypt-ts";
 import { Network } from "./web3";
 
 
@@ -9,40 +9,49 @@ export const Player = {
 
 // store alice and bob's Privkey
 export const PlayerPrivkey = {
-  get: (player) => {
+  get: (player: any) => {
     return localStorage.getItem(player);
   },
-  set: (player, key) => {
+  set: (player: any, key: any) => {
     localStorage.setItem(player, key);
   },
 };
 
 // store alice and bob's PublicKey, readonly
 export const PlayerPublicKey = {
-  get: (player) => {
+  get: (player: any) => {
     const key = PlayerPrivkey.get(player);
-    const privateKey = new bsv.PrivateKey.fromWIF(key);
-    const publicKey = bsv.PublicKey.fromPrivateKey(privateKey);
-    return toHex(publicKey);
+    if (key) {
+      const privateKey = bsv.PrivateKey.fromWIF(key);
+      const publicKey = bsv.PublicKey.fromPrivateKey(privateKey);
+      return toHex(publicKey);
+    }
+    throw new Error('Key not found.')
   }
 };
 
 export const PlayerPKH = {
-  get: (player) => {
+  get: (player: any) => {
     const key = PlayerPrivkey.get(player);
-    const privateKey = new bsv.PrivateKey.fromWIF(key);
-    const publicKey = bsv.PublicKey.fromPrivateKey(privateKey);
-    const pkh = bsv.crypto.Hash.sha256ripemd160(publicKey.toBuffer())
-    return toHex(pkh);
+    if (key) {
+      const privateKey = bsv.PrivateKey.fromWIF(key);
+      const publicKey = bsv.PublicKey.fromPrivateKey(privateKey);
+      const pkh = bsv.crypto.Hash.sha256ripemd160(publicKey.toBuffer())
+      return toHex(pkh);
+    }
+    throw new Error('Key not found.')
   }
 };
 
 // store alice and bob's PublicKey Address, readonly
 export const PlayerAddress = {
-  get: (player) => {
+  get: (player: any) => {
     const key = PlayerPrivkey.get(player);
-    const privateKey = new bsv.PrivateKey.fromWIF(key);
-    return privateKey.toAddress().toString();
+    if (key) {
+      const privateKey = bsv.PrivateKey.fromWIF(key);
+      return privateKey.toAddress().toString();
+    }
+    throw new Error('Key not found.')
   }
 };
 
@@ -51,7 +60,7 @@ export const CurrentPlayer = {
   get: () => {
     return localStorage[`player`] || Player.Computer;
   },
-  set: (player) => {
+  set: (player: any) => {
     localStorage.setItem(`player`, player);
   },
 };
@@ -61,15 +70,15 @@ export const initPlayer = () => {
 
   const alice = PlayerPrivkey.get(Player.Computer);
 
-  if(!alice) {
-    const aliceKey = new bsv.PrivateKey.fromRandom();
+  if (!alice) {
+    const aliceKey = bsv.PrivateKey.fromRandom();
     PlayerPrivkey.set(Player.Computer, aliceKey.toWIF())
   }
 
   const bob = PlayerPrivkey.get(Player.You);
 
-  if(!bob) {
-    const bobKey = new bsv.PrivateKey.fromRandom();
+  if (!bob) {
+    const bobKey = bsv.PrivateKey.fromRandom();
     PlayerPrivkey.set(Player.You, bobKey.toWIF())
   }
 }
@@ -80,10 +89,10 @@ export const GameData = {
     const gameStr = localStorage[`game`];
     return gameStr ? JSON.parse(gameStr) : {};
   },
-  set: (game) => {
+  set: (game: any) => {
     localStorage.setItem(`game`, JSON.stringify(game));
   },
-  update: (game) => {
+  update: (game: any) => {
     const now = GameData.get();
     localStorage.setItem(`game`, JSON.stringify(Object.assign(now, game)));
   },
@@ -95,7 +104,7 @@ export const GameData = {
 
 // store all utxos related to the contract
 export const ContractUtxos = {
-  add: (rawTx, player, index = 0) => {
+  add: (rawTx: any, player: any, index = 0) => {
     const tx = new bsv.Transaction(rawTx);
     const utxos = ContractUtxos.get();
     const utxo = {
@@ -117,20 +126,20 @@ export const ContractUtxos = {
     return utxosStr ? JSON.parse(utxosStr) : [];
   },
 
-  getComputerUtxoByIndex: (index) => {
+  getComputerUtxoByIndex: (index: any) => {
     const utxos = ContractUtxos.get();
-    return utxos.find(utxo => {
+    return utxos.find((utxo: any) => {
       return utxo.index === index && !utxo.player;
     })
   },
 
-  getPlayerUtxoByIndex: (index) => {
+  getPlayerUtxoByIndex: (index: any) => {
     const utxos = ContractUtxos.get();
-    return utxos.find(utxo => {
+    return utxos.find((utxo: any) => {
       return utxo.index === index && utxo.player;
     })
   },
-  set: (utxos) => {
+  set: (utxos: any) => {
     localStorage.setItem(`utxos`, JSON.stringify(utxos));
   },
   clear: () => {
@@ -150,7 +159,7 @@ export const ContractUtxos = {
 
 export const CurrentNetwork = {
   get: () => {
-    return localStorage[`network`] === 'main' ?  Network.Mainnet : Network.Testnet;
+    return localStorage[`network`] === 'main' ? Network.Mainnet : Network.Testnet;
   },
   switch: () => {
     const network = CurrentNetwork.get();
