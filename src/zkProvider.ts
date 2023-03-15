@@ -1,5 +1,6 @@
 import { initialize } from 'zokrates-js';
 
+
 export class ZKProvider {
   static instance;
 

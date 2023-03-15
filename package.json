@@ -19,7 +19,7 @@
     "scrypt-ts": "^0.1.7-beta.8",
     "typescript": "^4.8.4",
     "web-vitals": "^2.1.4",
-    "zokrates-js": "=1.1.4"
+    "zokrates-js": "^1.1.5"
   },
   "scripts": {
     "start": "react-app-rewired start",

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import desc from './contracts/zkBattleship.json'
+import { useEffect, useState } from 'react';
+import artifact from './contracts/zkBattleship.json'
 
 
 export function WelcomeScreen(props: any) {
@@ -9,7 +9,7 @@ export function WelcomeScreen(props: any) {
   useEffect(() => {
 
     if (!props.desc) {
-      props.setDesc(desc)
+      props.setArtifact(artifact)
       setLoading(false)
     }
 

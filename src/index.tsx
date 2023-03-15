@@ -9,13 +9,11 @@ import { Footer } from './Footer';
 import reportWebVitals from './reportWebVitals';
 
 import './css/style.css';
-import { Network, SensiletWallet, web3} from './web3';
-import { initPlayer } from './storage';
 import { SensiletSigner, WhatsonchainProvider, bsv } from 'scrypt-ts';
 
 export const App = () => {
   const [appState, setAppState] = useState('welcome'); // play or welcome
-  const [desc, setDesc] = useState(null); // play or welcome
+  const [artifact, setArtifact] = useState(null); // play or welcome
   const [signer, setSigner] = useState(null); 
 
   const startPlay = async () => {
@@ -27,49 +25,17 @@ export const App = () => {
 
     setAppState('play');
     setSigner(signer)
-
-    //const wallet =  new SensiletWallet();
-    //web3.setWallet(wallet);
-    //const isConnected = await web3.wallet.isConnected();
-
-    //if(isConnected) {
-    //  const n = await wallet.getNetwork();
-
-    //  if(n === Network.Mainnet) {
-
-    //    alert("your sensilet wallet's network is mainnet, switch to testnet before playing.");
-    //    return;
-    //  }
-
-    //  web3.setWallet(new SensiletWallet(n));
-
-    //  setAppState('play');
-    //} else {
-
-    //  try {
-    //    const res = await web3.wallet.requestAccount("battleship", []);
-    //    if (res) {
-    //      setAppState('play');
-    //    }
-    //  } catch (error) {
-    //    console.error("requestAccount error", error);
-    //  }
-
-    //}
   };
 
   // Renders either Welcome Screen or Game
   return (
     <React.Fragment>
       <Header />
-      {appState === 'play' ? <Game desc={desc} signer={signer}/> : <WelcomeScreen startPlay={startPlay} desc={desc} setDesc={setDesc} />}
+      {appState === 'play' ? <Game artifact={artifact} signer={signer}/> : <WelcomeScreen startPlay={startPlay} artifact={artifact} setArtifact={setArtifact} />}
       <Footer />
     </React.Fragment>
   );
 };
-
-
-initPlayer()
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

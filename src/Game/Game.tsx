@@ -44,7 +44,7 @@ const AVAILABLE_SHIPS = [
   },
 ];
 
-export const Game = ({ desc, signer }) => {
+export const Game = ({ artifact, signer }) => {
   const [gameState, setGameState] = useState('placement');
   const [winner, setWinner] = useState(null);
 
@@ -89,33 +89,28 @@ export const Game = ({ desc, signer }) => {
 
       const contractUtxo = ContractUtxos.getlast().utxo;
 
-      const Proof = battleShipContract.getTypeClassByType("Proof");
-      const G1Point = battleShipContract.getTypeClassByType("G1Point");
-      const G2Point = battleShipContract.getTypeClassByType("G2Point");
-      const FQ2 = battleShipContract.getTypeClassByType("FQ2");
-
       contractUtxo.script = battleShipContract.lockingScript.toHex();
 
-      await move(isPlayerFired, ctx.targetIdx, contractUtxo, output, new Proof({
-        a: new G1Point({
+      await move(isPlayerFired, ctx.targetIdx, contractUtxo, output, {
+        a: {
           x: BigInt(proof.proof.a[0]),
           y: BigInt(proof.proof.a[1]),
-        }),
-        b: new G2Point({
-          x: new FQ2({
+        },
+        b: {
+          x: {
             x: BigInt(proof.proof.b[0][0]),
             y: BigInt(proof.proof.b[0][1]),
-          }),
-          y: new FQ2({
+          },
+          y: {
             x: BigInt(proof.proof.b[1][0]),
             y: BigInt(proof.proof.b[1][1]),
-          })
-        }),
-        c: new G1Point({
+          }
+        },
+        c: {
           x: BigInt(proof.proof.c[0]),
           y: BigInt(proof.proof.c[1]),
-        })
-      }), ctx.newStates)
+        },
+      }, ctx.newStates)
         .then(() => {
 
           if (isPlayerFired) {
@@ -284,9 +279,9 @@ export const Game = ({ desc, signer }) => {
   };
 
   const startTurn = async () => {
-    const computerShips_ = generateComputerShips();
-    BattleShip.loadArtifact(desc)
+    BattleShip.loadArtifact(artifact)
 
+    const computerShips_ = generateComputerShips();
     const playerHash = await shipHash(placedShips);
     const computerHash = await shipHash(computerShips_);
 
