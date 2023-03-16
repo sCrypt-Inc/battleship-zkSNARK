@@ -101,8 +101,16 @@ export class BattleShip extends SmartContract {
                 }
             }
         }
+        
 
         this.playerTurn = !this.playerTurn
+        
+        console.log('updated onchain vals:')
+        console.log(this.playerTurn)
+        console.log(this.playerHits)
+        console.log(this.computerHits)
+        console.log(this.successfulPlayerHits)
+        console.log(this.successfulComputerHits)
 
         let outputs = toByteString('')
         if (this.successfulPlayerHits == 17n) {
@@ -112,6 +120,7 @@ export class BattleShip extends SmartContract {
             let script = Utils.buildPublicKeyHashScript(hash160(this.computer))
             outputs = Utils.buildOutput(script, amount)
         } else {
+            console.log('good')
             let script = this.getStateScript()
             outputs = Utils.buildOutput(script, amount)
         }

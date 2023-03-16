@@ -126,8 +126,10 @@ export const Game = ({ artifact, signer }) => {
     const nextInstance = currentInstance.next()
 
     const initBalance = currentInstance.from?.tx.outputs[currentInstance.from?.outputIndex].satoshis as number;
+
     // Update contract state:
     Object.assign(nextInstance, newStates); // TODO (miha)
+    console.log(nextInstance)
 
     BattleShip.bindTxBuilder('move', async (options: BuildMethodCallTxOptions<BattleShip>, sig: Sig) => {
 
@@ -153,7 +155,7 @@ export const Game = ({ artifact, signer }) => {
           ]
         }) as Promise<BuildMethodCallTxResult<BattleShip>>
 
-      } else if (newStates.successfulComputerHits == 17n) {
+      } else if (nextInstance.successfulComputerHits == 17n) {
 
         unsignedTx.addOutput(new bsv.Transaction.Output({
           script: bsv.Script.buildPublicKeyHashOut(pubKeyComputer),
@@ -191,10 +193,11 @@ export const Game = ({ artifact, signer }) => {
     })
 
 
-    const currentTurn = !newStates.yourTurn;
+    const currentTurn = !newStates.playerTurn;
     const pubKey = currentTurn ? pubKeyPlayer : pubKeyComputer
     const position = indexToCoords(index);
 
+    // TODO:  Needs to be next instance or something
     const { tx: callTx } = await currentInstance.methods.move(
       (sigResponses: SignatureResponse[]) => {
         return findSig(sigResponses, pubKey)
@@ -207,11 +210,11 @@ export const Game = ({ artifact, signer }) => {
 
     ContractUtxos.add(callTx, isPlayerFired, index);
 
-    battleShipContract.successfulYourHits = newStates.successfulYourHits;
-    battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
-    battleShipContract.yourTurn = newStates.yourTurn;
-    battleShipContract.yourHits = newStates.yourHits;
-    battleShipContract.computerHits = newStates.computerHits;
+    //battleShipContract.successfulPlayerHits = newStates.successfulPlayerHits;
+    //battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
+    //battleShipContract.playerTurn = newStates.playerTurn;
+    //battleShipContract.playerHits = newStates.playerHits;
+    //battleShipContract.computerHits = newStates.computerHits;
 
     setTimeout(async () => {
       web3.wallet.getbalance().then(balance => {
@@ -267,7 +270,8 @@ export const Game = ({ artifact, signer }) => {
       gammaAbc: VERIFYING_KEY_DATA.gammaAbc
     }
 
-    const falseArr: FixedArray<boolean, 100> = new Array(100).fill(false) as FixedArray<boolean, 100>
+    const falseArr0: FixedArray<boolean, 100> = new Array(100).fill(false) as FixedArray<boolean, 100>
+    const falseArr1: FixedArray<boolean, 100> = new Array(100).fill(false) as FixedArray<boolean, 100>
 
     // Because in this implementation we're playing against our local computer we just use the same
     // key (of our Sensilet wallet) for both players for the sake of simplicity.
@@ -279,7 +283,7 @@ export const Game = ({ artifact, signer }) => {
       PubKey(await pubKeyComputer.toString()),
       BigInt(playerHash),
       BigInt(computerHash),
-      falseArr, falseArr,
+      falseArr0, falseArr1,
       vk);
 
     instance.connect(signer)
@@ -361,27 +365,26 @@ export const Game = ({ artifact, signer }) => {
 
     if (fireResult) {
 
-      let successfulYourHits = hbpRef.current.filter((hit) => hit.type === 'hit').length;
+      let successfulPlayerHits = hbpRef.current.filter((hit) => hit.type === 'hit').length;
       let successfulComputerHits = computerHits.filter((hit) => hit.type === 'hit')
         .length;
 
-      const yourHits_ = new Array(100).fill(false);
+      const playerHits_ = new Array(100).fill(false);
       const computerHits_ = new Array(100).fill(false);
 
       hbpRef.current.map((hit) => coordsToIndex(hit.position)).forEach(v => {
-        yourHits_[v] = true
+        playerHits_[v] = true
       })
 
       computerHits.map((hit) => coordsToIndex(hit.position)).forEach(v => {
         computerHits_[v] = true
       })
 
-
       handleFire('computer', index, {
-        successfulYourHits: successfulYourHits,
+        successfulPlayerHits: successfulPlayerHits,
         successfulComputerHits: successfulComputerHits,
-        yourTurn: true,
-        yourHits: yourHits_,
+        playerTurn: true,
+        playerHits: playerHits_,
         computerHits: computerHits_
       });
     }
