@@ -15,6 +15,7 @@ import {
 import { BattleShip } from '../contracts/zkBattleship';
 import { VERIFYING_KEY_DATA, BN256, BN256Pairing, VerifyingKey } from '../contracts/verifier';
 import { runZKP } from '../zkProvider';
+import Queue from "queue-promise";
 
 const AVAILABLE_SHIPS = [
   {
@@ -61,6 +62,7 @@ export const Game = ({ artifact, signer }) => {
   const [battleShipContract, setBattleShipContract] = useState(null); // contract
   const [deployTxid, setDeployTxid] = useState('');
   const [balance, setBalance] = useState(-1);
+  const [queue, setQueue] = useState(null);
 
   const hp2CRef = useRef(hitsProofToComputer);
   useEffect(() => {
@@ -82,49 +84,19 @@ export const Game = ({ artifact, signer }) => {
     hbcRef.current = hitsByComputer
   }, [hitsByComputer]);
 
-  const zkpHandler = async (ctx: any, isVerified: boolean, proof: any, output: any) => {
-    if (isVerified) {
+  useEffect(() => {
+    const queue = new Queue({
+      concurrent: 1,
+      interval: 2000
+    });
 
-      const isPlayerFired = ctx.role === 'player';
+    setQueue(queue)
 
-      const contractUtxo = ContractUtxos.getlast().utxo;
+    return (() => {
+      queue.stop();
+    })
+  }, []);
 
-      contractUtxo.script = battleShipContract.lockingScript.toHex();
-
-      await move(isPlayerFired, ctx.targetIdx, contractUtxo, output, {
-        a: {
-          x: BigInt(proof.proof.a[0]),
-          y: BigInt(proof.proof.a[1]),
-        },
-        b: {
-          x: {
-            x: BigInt(proof.proof.b[0][0]),
-            y: BigInt(proof.proof.b[0][1]),
-          },
-          y: {
-            x: BigInt(proof.proof.b[1][0]),
-            y: BigInt(proof.proof.b[1][1]),
-          }
-        },
-        c: {
-          x: BigInt(proof.proof.c[0]),
-          y: BigInt(proof.proof.c[1]),
-        },
-      }, ctx.newStates)
-        .then(() => {
-
-          if (isPlayerFired) {
-            setHitsProofToPlayer(new Map(hp2PRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
-          } else {
-            setHitsProofToComputer(new Map(hp2CRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
-          }
-        })
-        .catch(e => {
-          console.error("call contract error:", e);
-          alert("call contract error:" + e.message);
-        })
-    }
-  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,7 +119,7 @@ export const Game = ({ artifact, signer }) => {
 
     console.log('call move ...', 'index=', index, 'hit=', hit, 'newStates=', newStates)
 
-    const pubKeyPlayer = signer.getDefaultPubKey()
+    const pubKeyPlayer = await signer.getDefaultPubKey()
     const pubKeyComputer = pubKeyPlayer
 
     const currentInstance = battleShipContract;
@@ -157,6 +129,7 @@ export const Game = ({ artifact, signer }) => {
 
     // Update contract state:
     Object.assign(nextInstance, newStates); // TODO (miha)
+    console.log(nextInstance)
 
     BattleShip.bindTxBuilder('move', async (options: BuildMethodCallTxOptions<BattleShip>, sig: Sig) => {
 
@@ -165,7 +138,6 @@ export const Game = ({ artifact, signer }) => {
         .from(options.utxos);
 
       const changeAddress = await currentInstance.signer.getDefaultAddress();
-
 
       if (nextInstance.successfulPlayerHits == 17n) {
 
@@ -183,7 +155,7 @@ export const Game = ({ artifact, signer }) => {
           ]
         }) as Promise<BuildMethodCallTxResult<BattleShip>>
 
-      } else if (newStates.successfulComputerHits == 17n) {
+      } else if (nextInstance.successfulComputerHits == 17n) {
 
         unsignedTx.addOutput(new bsv.Transaction.Output({
           script: bsv.Script.buildPublicKeyHashOut(pubKeyComputer),
@@ -221,10 +193,11 @@ export const Game = ({ artifact, signer }) => {
     })
 
 
-    const currentTurn = !newStates.yourTurn;
+    const currentTurn = !newStates.playerTurn;
     const pubKey = currentTurn ? pubKeyPlayer : pubKeyComputer
     const position = indexToCoords(index);
 
+    // TODO:  Needs to be next instance or something
     const { tx: callTx } = await currentInstance.methods.move(
       (sigResponses: SignatureResponse[]) => {
         return findSig(sigResponses, pubKey)
@@ -237,11 +210,11 @@ export const Game = ({ artifact, signer }) => {
 
     ContractUtxos.add(callTx, isPlayerFired, index);
 
-    battleShipContract.successfulYourHits = newStates.successfulYourHits;
-    battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
-    battleShipContract.yourTurn = newStates.yourTurn;
-    battleShipContract.yourHits = newStates.yourHits;
-    battleShipContract.computerHits = newStates.computerHits;
+    //battleShipContract.successfulPlayerHits = newStates.successfulPlayerHits;
+    //battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
+    //battleShipContract.playerTurn = newStates.playerTurn;
+    //battleShipContract.playerHits = newStates.playerHits;
+    //battleShipContract.computerHits = newStates.computerHits;
 
     setTimeout(async () => {
       web3.wallet.getbalance().then(balance => {
@@ -297,19 +270,20 @@ export const Game = ({ artifact, signer }) => {
       gammaAbc: VERIFYING_KEY_DATA.gammaAbc
     }
 
-    const falseArr: FixedArray<boolean, 100> = new Array(100).fill(false) as FixedArray<boolean, 100>
+    const falseArr0: FixedArray<boolean, 100> = new Array(100).fill(false) as FixedArray<boolean, 100>
+    const falseArr1: FixedArray<boolean, 100> = new Array(100).fill(false) as FixedArray<boolean, 100>
 
     // Because in this implementation we're playing against our local computer we just use the same
     // key (of our Sensilet wallet) for both players for the sake of simplicity.
-    const pubKeyPlayer = (await signer.getDefaultPubKey()).toString()
+    const pubKeyPlayer = await signer.getDefaultPubKey()
     const pubKeyComputer = pubKeyPlayer
 
     const instance = new BattleShip(
-      PubKey(pubKeyPlayer),
-      PubKey(pubKeyComputer),
+      PubKey(await pubKeyPlayer.toString()),
+      PubKey(await pubKeyComputer.toString()),
       BigInt(playerHash),
       BigInt(computerHash),
-      falseArr, falseArr,
+      falseArr0, falseArr1,
       vk);
 
     instance.connect(signer)
@@ -391,27 +365,26 @@ export const Game = ({ artifact, signer }) => {
 
     if (fireResult) {
 
-      let successfulYourHits = hbpRef.current.filter((hit) => hit.type === 'hit').length;
+      let successfulPlayerHits = hbpRef.current.filter((hit) => hit.type === 'hit').length;
       let successfulComputerHits = computerHits.filter((hit) => hit.type === 'hit')
         .length;
 
-      const yourHits_ = new Array(100).fill(false);
+      const playerHits_ = new Array(100).fill(false);
       const computerHits_ = new Array(100).fill(false);
 
       hbpRef.current.map((hit) => coordsToIndex(hit.position)).forEach(v => {
-        yourHits_[v] = true
+        playerHits_[v] = true
       })
 
       computerHits.map((hit) => coordsToIndex(hit.position)).forEach(v => {
         computerHits_[v] = true
       })
 
-
       handleFire('computer', index, {
-        successfulYourHits: successfulYourHits,
+        successfulPlayerHits: successfulPlayerHits,
         successfulComputerHits: successfulComputerHits,
-        yourTurn: true,
-        yourHits: yourHits_,
+        playerTurn: true,
+        playerHits: playerHits_,
         computerHits: computerHits_
       });
     }
@@ -532,8 +505,52 @@ export const Game = ({ artifact, signer }) => {
       targetIdx,
       newStates
     }
-    runZKP(privateInputs, publicInputs).then((res) => {
-      zkpHandler(ctx, res.isVerified, res.proof, res.output)
+
+    queue.enqueue(async () => {
+      await runZKP(privateInputs, publicInputs).then(async ({ isVerified, proof, isHit }: any) => {
+        console.log("isVerified", isVerified)
+        console.log("isHit", isHit)
+        console.log(proof)
+
+        const isPlayerFired = ctx.role === 'player';
+
+        const contractUtxo = ContractUtxos.getlast().utxo;
+
+        contractUtxo.script = battleShipContract.lockingScript.toHex();
+
+        await move(isPlayerFired, ctx.targetIdx, contractUtxo, isHit, {
+          a: {
+            x: BigInt(proof.pi_a[0]),
+            y: BigInt(proof.pi_a[1]),
+          },
+          b: {
+            x: {
+              x: BigInt(proof.pi_b[0][0]),
+              y: BigInt(proof.pi_b[0][1]),
+            },
+            y: {
+              x: BigInt(proof.pi_b[1][0]),
+              y: BigInt(proof.pi_b[1][1]),
+            }
+          },
+          c: {
+            x: BigInt(proof.pi_c[0]),
+            y: BigInt(proof.pi_c[1]),
+          },
+        }, ctx.newStates)
+          .then(() => {
+
+            if (isPlayerFired) {
+              setHitsProofToPlayer(new Map(hp2PRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
+            } else {
+              setHitsProofToComputer(new Map(hp2CRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
+            }
+          })
+          .catch(e => {
+            console.error("call contract error:", e);
+            alert("call contract error:" + e.message);
+          })
+      })
     })
   }
 
@@ -563,17 +580,13 @@ export const Game = ({ artifact, signer }) => {
   }
 
   const toPrivateInputs = (ships) => {
-    return sortShipsForZK(ships)
-      .reduce(
-        (res, ship) => {
-          return res.concat([
-            ship.position.x.toString(),
-            ship.position.y.toString(),
-            ship.orientation === "horizontal" ? '1' : '0'
-          ]);
-        },
-        []
-      )
+    return ships.map(ship =>
+      [
+        ship.position.x,
+        ship.position.y,
+        ship.orientation === "horizontal" ? 1 : 0
+      ]
+    )
   }
 
   // *** End ZKP **

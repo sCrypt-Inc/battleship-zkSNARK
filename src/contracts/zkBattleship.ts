@@ -1,5 +1,5 @@
 import { assert, SmartContract, Utils, method, hash160, hash256, prop, FixedArray, PubKey, toByteString, Sig } from 'scrypt-ts'
-import { Verifier, Proof, VerifyingKey } from './verifier'
+import { G16BN256, Proof, VerifyingKey } from './verifier'
 
 export class BattleShip extends SmartContract {
     @prop()
@@ -73,9 +73,8 @@ export class BattleShip extends SmartContract {
             x, y,
             hit ? 1n : 0n
         ]
-
-        const verifier = new Verifier(this.vk)
-        verifier.verifyProof(inputs, proof)
+        
+        assert(G16BN256.verify(this.vk, inputs, proof), 'Invalid proof.')
 
         const pubKey = this.playerTurn ? this.player : this.computer
         assert(this.checkSig(sig, pubKey))

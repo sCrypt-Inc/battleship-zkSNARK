@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-var artifact = require('../artifacts/src/contracts/zkBattleship.json')
+import artifact from './contracts/zkBattleship.json'
 
 
 export function WelcomeScreen(props: any) {
@@ -9,6 +9,20 @@ export function WelcomeScreen(props: any) {
   useEffect(() => {
 
     if (!props.desc) {
+      // TODO: Shouldn't be needed with future versions of scrypt-ts
+      if (!artifact.hasOwnProperty('transformer')) {
+        const transformer = {
+          "success": true,
+          "errors": [],
+          "scryptfile": "",
+          "sourceMapFile": "",
+          "ctxMethods": [
+            "move"
+          ]
+        }
+        artifact['transformer'] = transformer
+      }
+
       props.setArtifact(artifact)
       setLoading(false)
     }

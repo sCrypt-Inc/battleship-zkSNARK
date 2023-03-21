@@ -57,15 +57,15 @@ export function ComputerBoard(props: any) {
       ];
       setHitsByPlayer(newHits);
 
-      let successfulYourHits = newHits.filter((hit) => hit.type === 'hit').length;
+      let successfulPlayerHits = newHits.filter((hit) => hit.type === 'hit').length;
       let successfulComputerHits = hitsByComputer.filter((hit: { type: string; }) => hit.type === 'hit')
         .length;
 
-      const yourHits_ = new Array(100).fill(false);
+      const playerHits_ = new Array(100).fill(false);
       const computerHits_ = new Array(100).fill(false);
 
       newHits.map((hit) => coordsToIndex(hit.position)).forEach(v => {
-        yourHits_[v] = true
+        playerHits_[v] = true
       })
 
       hitsByComputer.map((hit: { position: any; }) => coordsToIndex(hit.position)).forEach((v: any) => {
@@ -73,10 +73,10 @@ export function ComputerBoard(props: any) {
       })
 
       handleFire('player', index, {
-        successfulYourHits: successfulYourHits,
+        successfulPlayerHits: successfulPlayerHits,
         successfulComputerHits: successfulComputerHits,
-        yourTurn: false,
-        yourHits: yourHits_,
+        playerTurn: false,
+        playerHits: playerHits_,
         computerHits: computerHits_
       });
 
@@ -92,15 +92,15 @@ export function ComputerBoard(props: any) {
       ];
       setHitsByPlayer(newHits);
 
-      let successfulYourHits = newHits.filter((hit) => hit.type === 'hit').length;
+      let successfulPlayerHits = newHits.filter((hit) => hit.type === 'hit').length;
       let successfulComputerHits = hitsByComputer.filter((hit: { type: string; }) => hit.type === 'hit')
         .length;
 
-      const yourHits_ = new Array(100).fill(false);
+      const playerHits_ = new Array(100).fill(false);
       const computerHits_ = new Array(100).fill(false);
 
       newHits.map((hit) => coordsToIndex(hit.position)).forEach(v => {
-        yourHits_[v] = true
+        playerHits_[v] = true
       })
 
       hitsByComputer.map((hit: { position: any; }) => coordsToIndex(hit.position)).forEach((v: any) => {
@@ -108,10 +108,10 @@ export function ComputerBoard(props: any) {
       })
 
       handleFire('player', index, {
-        successfulYourHits: successfulYourHits,
+        successfulPlayerHits: successfulPlayerHits,
         successfulComputerHits: successfulComputerHits,
-        yourTurn: false,
-        yourHits: yourHits_,
+        playerTurn: false,
+        playerHits: playerHits_,
         computerHits: computerHits_
       });
       return newHits;
