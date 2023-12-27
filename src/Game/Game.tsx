@@ -59,7 +59,7 @@ export const Game = ({ artifact, signer }) => {
   const [hitsByComputer, setHitsByComputer] = useState([]);
   const [hitsProofToComputer, setHitsProofToComputer] = useState(new Map()); // index: number => {status: 'pending'/'verified', proof?: object}
   const [hitsProofToPlayer, setHitsProofToPlayer] = useState(new Map()); // structure same as above
-  const [battleShipContract, setBattleShipContract] = useState(null); // contract
+  const battleShipContract = useRef(null); // contract
   const [deployTxid, setDeployTxid] = useState('');
   const [balance, setBalance] = useState(-1);
   const [queue, setQueue] = useState(null);
@@ -98,9 +98,6 @@ export const Game = ({ artifact, signer }) => {
   }, []);
 
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [battleShipContract]);
 
 
   // *** PLAYER ***
@@ -122,7 +119,7 @@ export const Game = ({ artifact, signer }) => {
     const pubKeyPlayer = await signer.getDefaultPubKey()
     const pubKeyComputer = pubKeyPlayer
 
-    const currentInstance = battleShipContract;
+    const currentInstance = battleShipContract.current;
     const nextInstance = currentInstance.next()
 
     const initBalance = currentInstance.from?.tx.outputs[currentInstance.from?.outputIndex].satoshis as number;
@@ -210,16 +207,13 @@ export const Game = ({ artifact, signer }) => {
 
     ContractUtxos.add(callTx, isPlayerFired, index);
 
-    //battleShipContract.successfulPlayerHits = newStates.successfulPlayerHits;
-    //battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
-    //battleShipContract.playerTurn = newStates.playerTurn;
-    //battleShipContract.playerHits = newStates.playerHits;
-    //battleShipContract.computerHits = newStates.computerHits;
+    battleShipContract.current = nextInstance;
+
 
     setTimeout(async () => {
-      web3.wallet.getbalance().then(balance => {
+      signer.getBalance().then(balance => {
         console.log('update balance:', balance)
-        setBalance(balance)
+        setBalance(balance?.total || 0)
       })
     }, 5000);
 
@@ -286,9 +280,9 @@ export const Game = ({ artifact, signer }) => {
       falseArr0, falseArr1,
       vk);
 
-    instance.connect(signer)
+    await instance.connect(signer)
 
-    setBattleShipContract(instance);
+    battleShipContract.current = instance;
 
     try {
       ContractUtxos.clear();
@@ -307,7 +301,7 @@ export const Game = ({ artifact, signer }) => {
       }, 10000);
     } catch (error) {
       console.error("deploy contract fails", error);
-      setBattleShipContract(null);
+      battleShipContract.current = null;
       alert("deploy contract error:" + error.message);
       return;
     }
@@ -515,7 +509,7 @@ export const Game = ({ artifact, signer }) => {
 
         const contractUtxo = ContractUtxos.getlast().utxo;
        
-        contractUtxo.script = battleShipContract.lockingScript.toHex();
+        contractUtxo.script = battleShipContract.current.lockingScript.toHex();
 
         await move(isPlayerFired, ctx.targetIdx, contractUtxo, isHit, {
           a: {
