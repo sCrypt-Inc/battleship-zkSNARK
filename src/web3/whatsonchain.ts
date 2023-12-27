@@ -4,7 +4,7 @@ import { Buffer } from 'buffer';
 
 export class Whatsonchain {
     static API_PREFIX = ``;
-    static TX_URL_PREFIX = ``;
+    static TX_URL_PREFIX = 'https://classic-test.whatsonchain.com/tx';
     static setNetwork(network: Network) {
 
         Whatsonchain.API_PREFIX = `https://api.whatsonchain.com/v1/bsv/${network === Network.Testnet ? 'test' : 'main'}`;

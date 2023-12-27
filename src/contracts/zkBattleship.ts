@@ -113,6 +113,7 @@ export class BattleShip extends SmartContract {
             let script = this.getStateScript()
             outputs = Utils.buildOutput(script, amount)
         }
+        outputs += this.buildChangeOutput();
 
         // Make sure the transaction contains the expected outputs.
         assert(this.ctx.hashOutputs == hash256(outputs), 'hashOutputs mismatch')

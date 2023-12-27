@@ -147,7 +147,7 @@ export const Game = ({ artifact, signer }) => {
           .change(changeAddress)
 
         return Promise.resolve({
-          unsignedTx,
+          tx: unsignedTx,
           atInputIndex: 0,
           nexts: [
 
@@ -163,7 +163,7 @@ export const Game = ({ artifact, signer }) => {
           .change(changeAddress)
 
         return Promise.resolve({
-          unsignedTx,
+          tx: unsignedTx,
           atInputIndex: 0,
           nexts: [
 
@@ -178,7 +178,7 @@ export const Game = ({ artifact, signer }) => {
           .change(changeAddress)
 
         return Promise.resolve({
-          unsignedTx,
+          tx: unsignedTx,
           atInputIndex: 0,
           nexts: [
             {
@@ -204,6 +204,7 @@ export const Game = ({ artifact, signer }) => {
       position.x, position.y, hit, proof, initBalance,
       {
         pubKeyOrAddrToSign: pubKey,
+        //verify: true
       } as MethodCallOptions<BattleShip>
     )
 
@@ -509,36 +510,35 @@ export const Game = ({ artifact, signer }) => {
       await runZKP(privateInputs, publicInputs).then(async ({ isVerified, proof, isHit }: any) => {
         console.log("isVerified", isVerified)
         console.log("isHit", isHit)
-        console.log(proof)
 
         const isPlayerFired = ctx.role === 'player';
 
         const contractUtxo = ContractUtxos.getlast().utxo;
-
+       
         contractUtxo.script = battleShipContract.lockingScript.toHex();
 
         await move(isPlayerFired, ctx.targetIdx, contractUtxo, isHit, {
           a: {
-            x: BigInt(proof.pi_a[0]),
-            y: BigInt(proof.pi_a[1]),
+            x: BigInt(proof.proof.a[0]),
+            y: BigInt(proof.proof.a[1]),
           },
           b: {
             x: {
-              x: BigInt(proof.pi_b[0][0]),
-              y: BigInt(proof.pi_b[0][1]),
+              x: BigInt(proof.proof.b[0][0]),
+              y: BigInt(proof.proof.b[0][1]),
             },
             y: {
-              x: BigInt(proof.pi_b[1][0]),
-              y: BigInt(proof.pi_b[1][1]),
+              x: BigInt(proof.proof.b[1][0]),
+              y: BigInt(proof.proof.b[1][1]),
             }
           },
           c: {
-            x: BigInt(proof.pi_c[0]),
-            y: BigInt(proof.pi_c[1]),
-          },
+            x: BigInt(proof.proof.c[0]),
+            y: BigInt(proof.proof.c[1]),
+          }
         }, ctx.newStates)
           .then(() => {
-
+  
             if (isPlayerFired) {
               setHitsProofToPlayer(new Map(hp2PRef.current.set(ctx.targetIdx, { status: isVerified ? 'verified' : 'failed', proof })))
             } else {
@@ -579,12 +579,16 @@ export const Game = ({ artifact, signer }) => {
   }
 
   const toPrivateInputs = (ships) => {
-    return ships.map(ship =>
-      [
-        ship.position.x,
-        ship.position.y,
-        ship.orientation === "horizontal" ? 1 : 0
-      ]
+    return sortShipsForZK(ships)
+      .reduce(
+        (res, ship) => {
+          return res.concat([
+            ship.position.x.toString(),
+            ship.position.y.toString(),
+            ship.orientation === "horizontal" ? '1' : '0'
+          ]);
+        },
+        []
     )
   }
 

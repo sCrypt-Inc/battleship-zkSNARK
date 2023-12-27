@@ -113,7 +113,7 @@ export function runZKP(privateInputs, publicInputs) {
     .then(async ({ proof, output }: any) => {
       const isVerified = await ZKProvider.verify(proof) as boolean;
       console.log('verify proof:', isVerified)
-      return { isVerified, proof, output };
+      return { isVerified, proof, isHit: output };
     })
     .catch(e => {
       console.error('runZKP err:', e)

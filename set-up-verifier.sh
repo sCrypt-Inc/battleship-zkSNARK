@@ -20,7 +20,7 @@ echo "export ..."
 
 zokrates export-verifier-scrypt
 
-cp -f verifier/src/contracts/snark.ts src/contracts/snark.ts
+cp -f verifier/src/contracts/snark.ts ../src/contracts/snark.ts
 
 # mv output files to public folder
 cp out abi.json verification.key proving.key ../public/zk/
