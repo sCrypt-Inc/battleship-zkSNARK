@@ -40,3 +40,5 @@ scrypt.index.json
 /circuits/battleship_js
 
 /public/zk/
+
+tsconfig-scryptTS.json

@@ -13,7 +13,7 @@ import {
 } from './layoutHelpers';
 
 import { BattleShip } from '../contracts/zkBattleship';
-import { VERIFYING_KEY_DATA, BN256, BN256Pairing, VerifyingKey } from '../contracts/verifier';
+import { VERIFYING_KEY_DATA, BN256, BN256Pairing, VerifyingKey } from '../contracts/snark';
 import { runZKP } from '../zkProvider';
 import Queue from "queue-promise";
 

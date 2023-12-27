@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import artifact from './contracts/zkBattleship.json'
+import artifact from '../artifacts/zkBattleship.json'
 
 
 export function WelcomeScreen(props: any) {
