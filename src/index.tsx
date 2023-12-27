@@ -9,7 +9,7 @@ import { Footer } from './Footer';
 import reportWebVitals from './reportWebVitals';
 
 import './css/style.css';
-import { SensiletSigner, WhatsonchainProvider, bsv } from 'scrypt-ts';
+import { DummyProvider, SensiletSigner, WhatsonchainProvider, bsv } from 'scrypt-ts';
 
 export const App = () => {
   const [appState, setAppState] = useState('welcome'); // play or welcome
@@ -18,7 +18,7 @@ export const App = () => {
 
   const startPlay = async () => {
     
-    const provider = new WhatsonchainProvider(bsv.Networks.testnet);  // TODO: Maybe change to gorillapool because if big scripts
+    const provider = new DummyProvider();  // TODO: Maybe change to gorillapool because if big scripts
     const signer = new SensiletSigner(provider);
     
     await signer.requestAuth();
