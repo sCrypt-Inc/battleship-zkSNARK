@@ -1,6 +1,6 @@
 /* global BigInt */
 import React, { useEffect, useRef, useState } from 'react';
-import { bsv, BuildMethodCallTxOptions, BuildMethodCallTxResult, findSig, FixedArray, MethodCallOptions, PubKey, Sig, SignatureResponse } from 'scrypt-ts'
+import { bsv, findSig, FixedArray, MethodCallOptions, PubKey, Sig, SignatureResponse } from 'scrypt-ts'
 import { ContractUtxos } from '../storage';
 import { web3 } from '../web3';
 import { Balance } from './Balance';
@@ -13,7 +13,7 @@ import {
 } from './layoutHelpers';
 
 import { BattleShip } from '../contracts/zkBattleship';
-import { VERIFYING_KEY_DATA, BN256, BN256Pairing, VerifyingKey } from '../contracts/verifier';
+import { VERIFYING_KEY_DATA, BN256, BN256Pairing, VerifyingKey } from '../contracts/snark';
 import { runZKP } from '../zkProvider';
 import Queue from "queue-promise";
 
@@ -59,7 +59,7 @@ export const Game = ({ artifact, signer }) => {
   const [hitsByComputer, setHitsByComputer] = useState([]);
   const [hitsProofToComputer, setHitsProofToComputer] = useState(new Map()); // index: number => {status: 'pending'/'verified', proof?: object}
   const [hitsProofToPlayer, setHitsProofToPlayer] = useState(new Map()); // structure same as above
-  const [battleShipContract, setBattleShipContract] = useState(null); // contract
+  const battleShipContract = useRef(null); // contract
   const [deployTxid, setDeployTxid] = useState('');
   const [balance, setBalance] = useState(-1);
   const [queue, setQueue] = useState(null);
@@ -122,7 +122,7 @@ export const Game = ({ artifact, signer }) => {
     const pubKeyPlayer = await signer.getDefaultPubKey()
     const pubKeyComputer = pubKeyPlayer
 
-    const currentInstance = battleShipContract;
+    const currentInstance = battleShipContract.current;
     const nextInstance = currentInstance.next()
 
     const initBalance = currentInstance.from?.tx.outputs[currentInstance.from?.outputIndex].satoshis as number;
@@ -131,11 +131,10 @@ export const Game = ({ artifact, signer }) => {
     Object.assign(nextInstance, newStates); // TODO (miha)
     console.log(nextInstance)
 
-    BattleShip.bindTxBuilder('move', async (options: BuildMethodCallTxOptions<BattleShip>, sig: Sig) => {
+    currentInstance.bindTxBuilder('move', async (current: BattleShip, options: MethodCallOptions<BattleShip>, sig: Sig) => {
 
       const unsignedTx: bsv.Transaction = new bsv.Transaction()
-        .addInputFromPrevTx(currentInstance.from?.tx as bsv.Transaction, currentInstance.from?.outputIndex)
-        .from(options.utxos);
+        .addInput(current.buildContractInput());
 
       const changeAddress = await currentInstance.signer.getDefaultAddress();
 
@@ -148,12 +147,12 @@ export const Game = ({ artifact, signer }) => {
           .change(changeAddress)
 
         return Promise.resolve({
-          unsignedTx,
+          tx: unsignedTx,
           atInputIndex: 0,
           nexts: [
 
           ]
-        }) as Promise<BuildMethodCallTxResult<BattleShip>>
+        })
 
       } else if (nextInstance.successfulComputerHits == 17n) {
 
@@ -164,12 +163,12 @@ export const Game = ({ artifact, signer }) => {
           .change(changeAddress)
 
         return Promise.resolve({
-          unsignedTx,
+          tx: unsignedTx,
           atInputIndex: 0,
           nexts: [
 
           ]
-        }) as Promise<BuildMethodCallTxResult<BattleShip>>
+        })
 
       } else {
         unsignedTx.addOutput(new bsv.Transaction.Output({
@@ -179,7 +178,7 @@ export const Game = ({ artifact, signer }) => {
           .change(changeAddress)
 
         return Promise.resolve({
-          unsignedTx,
+          tx: unsignedTx,
           atInputIndex: 0,
           nexts: [
             {
@@ -188,7 +187,7 @@ export const Game = ({ artifact, signer }) => {
               balance: initBalance
             }
           ]
-        }) as Promise<BuildMethodCallTxResult<BattleShip>>
+        })
       }
     })
 
@@ -210,6 +209,8 @@ export const Game = ({ artifact, signer }) => {
 
     ContractUtxos.add(callTx, isPlayerFired, index);
 
+    battleShipContract.current = nextInstance
+
     //battleShipContract.successfulPlayerHits = newStates.successfulPlayerHits;
     //battleShipContract.successfulComputerHits = newStates.successfulComputerHits;
     //battleShipContract.playerTurn = newStates.playerTurn;
@@ -217,8 +218,8 @@ export const Game = ({ artifact, signer }) => {
     //battleShipContract.computerHits = newStates.computerHits;
 
     setTimeout(async () => {
-      web3.wallet.getbalance().then(balance => {
-        console.log('update balance:', balance)
+      signer.getBalance().then(balance => {
+        console.log('update balance:', balance.total)
         setBalance(balance)
       })
     }, 5000);
@@ -288,7 +289,7 @@ export const Game = ({ artifact, signer }) => {
 
     instance.connect(signer)
 
-    setBattleShipContract(instance);
+    battleShipContract.current = instance;
 
     try {
       ContractUtxos.clear();
@@ -307,7 +308,7 @@ export const Game = ({ artifact, signer }) => {
       }, 10000);
     } catch (error) {
       console.error("deploy contract fails", error);
-      setBattleShipContract(null);
+      battleShipContract.current = null;
       alert("deploy contract error:" + error.message);
       return;
     }
@@ -516,7 +517,7 @@ export const Game = ({ artifact, signer }) => {
 
         const contractUtxo = ContractUtxos.getlast().utxo;
 
-        contractUtxo.script = battleShipContract.lockingScript.toHex();
+        contractUtxo.script = battleShipContract.current.lockingScript.toHex();
 
         await move(isPlayerFired, ctx.targetIdx, contractUtxo, isHit, {
           a: {

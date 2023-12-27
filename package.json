@@ -17,9 +17,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "scrypt-ts": "^0.1.7-beta.8",
-    "snarkjs-scrypt": "^0.5.0",
-    "typescript": "^4.8.4",
+    "scrypt-ts": "^1.3.20",
+    "snarkjs-scrypt": "^0.5.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -27,7 +26,8 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "setup": "sh set-up-verifier.sh"
+    "setup": "sh set-up-verifier.sh",
+    "compile": "npx scrypt-cli@latest compile --asm"
   },
   "eslintConfig": {
     "extends": [
