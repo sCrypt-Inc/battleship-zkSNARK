@@ -95,20 +95,27 @@ export class ZKProvider {
 
 // run zero knowledge proof
 export function runZKP(privateInputs, publicInputs) {
+  console.log('runZKP', privateInputs, publicInputs)
   return ZKProvider
     .init()
     .then(() => {
       // computer witness for fire result
+      console.log('computeWitness')
       return ZKProvider.computeWitness(privateInputs.concat(publicInputs))
     })
     .then(async ({ witness, output }: any) => {
       const proof = await ZKProvider.generateProof(witness);
       output = output === 'true' ? true : false;
+      console.log('proof', proof)
+      console.log('output', output)
       return { proof, output }
     })
     .then(async ({ proof, output }: any) => {
       const isVerified = await ZKProvider.verify(proof) as boolean;
       console.log('verify proof:', isVerified)
       return { isVerified, proof, output };
+    })
+    .catch(e => {
+      console.error('runZKP err:', e)
     })
 }

@@ -21,7 +21,7 @@ export const App = () => {
     const provider = new WhatsonchainProvider(bsv.Networks.testnet);  // TODO: Maybe change to gorillapool because if big scripts
     const signer = new SensiletSigner(provider);
     
-    await signer.getConnectedTarget() as any;
+    await signer.requestAuth();
 
     setAppState('play');
     setSigner(signer)

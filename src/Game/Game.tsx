@@ -1,6 +1,6 @@
 /* global BigInt */
 import React, { useEffect, useRef, useState } from 'react';
-import { bsv, BuildMethodCallTxOptions, BuildMethodCallTxResult, findSig, FixedArray, MethodCallOptions, PubKey, Sig, SignatureResponse } from 'scrypt-ts'
+import { bsv, findSig, FixedArray, MethodCallOptions, PubKey, Sig, SignatureResponse } from 'scrypt-ts'
 import { ContractUtxos } from '../storage';
 import { web3 } from '../web3';
 import { Balance } from './Balance';
@@ -131,11 +131,10 @@ export const Game = ({ artifact, signer }) => {
     Object.assign(nextInstance, newStates); // TODO (miha)
     console.log(nextInstance)
 
-    BattleShip.bindTxBuilder('move', async (options: BuildMethodCallTxOptions<BattleShip>, sig: Sig) => {
+    currentInstance.bindTxBuilder('move', async (current: BattleShip, options: MethodCallOptions<BattleShip>, sig: Sig) => {
 
       const unsignedTx: bsv.Transaction = new bsv.Transaction()
-        .addInputFromPrevTx(currentInstance.from?.tx as bsv.Transaction, currentInstance.from?.outputIndex)
-        .from(options.utxos);
+        .addInput(current.buildContractInput());
 
       const changeAddress = await currentInstance.signer.getDefaultAddress();
 
@@ -153,7 +152,7 @@ export const Game = ({ artifact, signer }) => {
           nexts: [
 
           ]
-        }) as Promise<BuildMethodCallTxResult<BattleShip>>
+        }) 
 
       } else if (nextInstance.successfulComputerHits == 17n) {
 
@@ -169,7 +168,7 @@ export const Game = ({ artifact, signer }) => {
           nexts: [
 
           ]
-        }) as Promise<BuildMethodCallTxResult<BattleShip>>
+        }) 
 
       } else {
         unsignedTx.addOutput(new bsv.Transaction.Output({
@@ -188,7 +187,7 @@ export const Game = ({ artifact, signer }) => {
               balance: initBalance
             }
           ]
-        }) as Promise<BuildMethodCallTxResult<BattleShip>>
+        }) 
       }
     })
 
