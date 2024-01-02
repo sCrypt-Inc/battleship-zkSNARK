@@ -61,7 +61,7 @@ export const Game = ({ artifact, signer }) => {
   const [hitsProofToPlayer, setHitsProofToPlayer] = useState(new Map()); // structure same as above
   const battleShipContract = useRef(null); // contract
   const [deployTxid, setDeployTxid] = useState('');
-  const [balance, setBalance] = useState(-1);
+  const [balance, setBalance] = useState(0);
   const [queue, setQueue] = useState(null);
 
   const hp2CRef = useRef(hitsProofToComputer);
@@ -213,7 +213,8 @@ export const Game = ({ artifact, signer }) => {
     setTimeout(async () => {
       signer.getBalance().then(balance => {
         console.log('update balance:', balance)
-        setBalance(balance?.total || 0)
+        const total = (balance?.confirmed || 0) + (balance?.unconfirmed || 0)
+        setBalance(total)
       })
     }, 5000);
 
@@ -295,8 +296,8 @@ export const Game = ({ artifact, signer }) => {
 
       setTimeout(async () => {
         signer.getBalance().then(balance => {
-          console.log('update balance:', balance.total)
-          setBalance(balance.total)
+          const total = (balance?.confirmed || 0) + (balance?.unconfirmed || 0)
+          setBalance(total)
         })
       }, 10000);
     } catch (error) {
