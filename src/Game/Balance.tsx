@@ -7,7 +7,7 @@ export function Balance(props: any) {
   useEffect(() => {
     if (props.signer) {
       props.signer.getBalance().then((balance) => {
-        setBalance(balance.total)
+        setBalance(balance.confirmed + balance.unconfirmed)
       })
       props.signer.getNetwork().then((network) => {
         setNetwork(network.name)

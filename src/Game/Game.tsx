@@ -219,8 +219,8 @@ export const Game = ({ artifact, signer }) => {
 
     setTimeout(async () => {
       signer.getBalance().then(balance => {
-        console.log('update balance:', balance.total)
-        setBalance(balance)
+        console.log('update balance:', balance)
+        setBalance(balance.confirmed + balance.unconfirmed)
       })
     }, 5000);
 
@@ -302,8 +302,8 @@ export const Game = ({ artifact, signer }) => {
 
       setTimeout(async () => {
         signer.getBalance().then(balance => {
-          console.log('update balance:', balance.total)
-          setBalance(balance.total)
+          console.log('update balance:', balance)
+          setBalance(balance.confirmed + balance.unconfirmed)
         })
       }, 10000);
     } catch (error) {
